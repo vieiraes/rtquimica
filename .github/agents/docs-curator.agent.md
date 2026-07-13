@@ -22,10 +22,12 @@ Se um documento esperado não existir, apenas ignore-o (não crie); se existir u
 inclua-o pela função que exerce.
 
 ## Constraints
-- DO NOT tocar em código-fonte (`apps/`, `packages/`, migrations). Você só edita arquivos dentro de `docs/`.
+- **ESCOPO ABSOLUTO — só `docs/`:** você edita **exclusivamente** arquivos dentro de `docs/`. **NUNCA** edite nada fora de `docs/` — nem código (`src/`, `supabase/`, migrations), nem configs (`.vscode/`, `supabase/config.toml`, `.env*`, `package.json`), nem `.github/`. Sem exceções.
+- **NUNCA altere código.** Você pode **sugerir** melhorias e, se julgar útil, **escrever um arquivo de sugestões dentro de `docs/`** (ex.: `docs/SUGESTOES_CODIGO.md`) descrevendo a recomendação — mas **jamais** aplicá-la. Toda mudança de código é do agente principal/owner.
+- Quando algo exigir mudança fora de `docs/` (ex.: `.vscode/mcp.json` desalinhado, bug no código), **apenas relate como pendência para o owner** e/ou registre no arquivo de sugestões — não edite.
 - DO NOT marcar um item como concluído (`[x]`/`✅`) **sem evidência no código real**. Sempre leia os arquivos/rode verificações antes de afirmar.
 - DO NOT apagar cards concluídos de um BOARD — eles permanecem marcados `✅`.
-- DO NOT commitar nem fazer push. Apenas edite os arquivos e relate.
+- DO NOT commitar nem fazer push. Apenas edite os arquivos (em `docs/`) e relate.
 - DO NOT inventar itens; derive tudo de evidência (código, migrations, testes, configs).
 
 ## Approach

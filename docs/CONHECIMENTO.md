@@ -14,9 +14,11 @@ A plataforma opera em arquitetura **Multi-tenant**, o que significa que atende t
   - CSS Vanilla (`styles.css`), suportando Dark/Light mode com `data-theme`.
   - Ícones da biblioteca `lucide-react`.
 - **Backend / Infraestrutura**:
-  - **Supabase Local** (em desenvolvimento).
+  - **Supabase** (Auth + Postgres com RLS + Storage). A operação/validação foi migrada para o **Supabase remoto (Cloud)** — o modo **local** (Supabase CLI) foi ~~a fonte principal de desenvolvimento~~ **abandonado** (decisão 12/07/2026, ver [BOARD_CODE_REVIEW.md](BOARD_CODE_REVIEW.md) RTQ-4).
   - Controle de Acesso Baseado em Regras (RBAC) suportado nativamente pelo Postgres.
   - Banco de dados inteiramente modelado em **inglês**.
+- **Versionamento**:
+  - Projeto versionado em Git e publicado no GitHub (`git@github.com:vieiraes/rtquimica.git`, branch `main`).
 
 ## 3. Arquitetura Multi-tenant e RBAC
 O sistema utiliza um design de banco de dados voltado para isolamento por `tenant_id`. Cada cliente ou empresa de assessoria possui um `tenant`, e os `profiles` dos usuários são atrelados a esse workspace.
@@ -28,9 +30,19 @@ O sistema utiliza um design de banco de dados voltado para isolamento por `tenan
 - `tenant_client`: A empresa que recebe a RT (cliente final). Terá acesso de apenas-leitura a um portal dedicado para ver relatórios.
 
 ### Estrutura de Código Central
+Após a modularização (RTQ-7), o `App.tsx` deixou de ser um monólito (~1.154 → ~365 linhas) e passou a orquestrar componentes/utilitários extraídos:
 - `src/main.tsx`: Ponto de inicialização.
-- `src/App.tsx`: Centralizador da aplicação. Possui rotas internas, estados globais e as consultas (Supabase JS) já adaptadas para buscar o `tenant_id` e exibir painéis condicionalmente (ex: a aba "Administração" é protegida para `superadmin` ou `tenant_admin`).
-- `src/types.ts`: Tipagens dos dados mapeados. As queries recebem tabelas em inglês (ex: `technical_responsibilities`) e as mapeiam para as interfaces utilizadas no Frontend.
+- `src/App.tsx`: Centralizador da aplicação (rotas internas por estado, estados globais e as consultas Supabase JS adaptadas ao `tenant_id`, com painéis condicionais por papel — ex.: a aba "Administração" é protegida para `superadmin`/`tenant_admin`).
+- `src/types.ts`: Tipagens dos dados mapeados e payloads de formulário (ex.: `technical_responsibilities` mapeadas para as interfaces do Frontend).
+- `src/lib/format.ts` e `src/lib/mappers.ts`: utilitários de formatação e mapeadores DB↔UI (`mapRt`, `mapAlert`, `mapAction`, categorias).
+- `src/lib/supabase.ts`: cliente Supabase e flag `isSupabaseConfigured` (alterna entre mock e backend real).
+- `src/components/primitives.tsx`: primitivos de UI (`Brand`, `Field`, `Modal`, `PanelHeader`, `Toggle`, `Empty`).
+- `src/components/modals.tsx`: modais (`NewRtModal`, `NewActionModal`, `PopModal`).
+- `src/components/layout.tsx`: `Sidebar`, `Header`, `PageHeading`.
+- `src/components/landing.tsx`: `Landing` e `AuthPanel`.
+- `src/components/pages.tsx`: páginas (`Dashboard`, `Responsibilities`, `Alerts`, `TechnicalDiary`, `Compliance`, `Pops`, `CompanyPortal`, `Admin`, `Profile`).
+
+> As métricas do `Dashboard` são derivadas de dados reais (RTQ-8): documentos a vencer, conformidade média, vencidas e próximas renovações — não mais valores hardcoded.
 
 ## 4. Modelagem de Dados e Regras (Supabase)
 Toda a modelagem foi migrada para nomenclatura em **inglês**. O banco adota fortemente RLS e Triggers:
@@ -50,4 +62,6 @@ Toda a modelagem foi migrada para nomenclatura em **inglês**. O banco adota for
 - **Segurança (RLS)**: O Row Level Security baseia-se em funções utilitárias (`current_user_tenant()` e `current_user_role()`) para garantir que queries comuns no Frontend sempre devolvam apenas dados do Workspace pertencente ao usuário logado, exceto para o `superadmin` que sobrepõe a regra.
 
 ## 5. Ferramentas e Integração do Agente (MCP)
-Para operar corretamente no modo local, o projeto utiliza um servidor MCP do Supabase injetado em escopo de projeto. Há um arquivo `.vscode/mcp.json` na raiz configurado para se conectar à porta `54321` (banco local do Supabase), restringindo a ação e análise do Supabase especificamente a este repositório sem afetar ambientes globais.
+O projeto pode utilizar um servidor MCP do Supabase injetado em escopo de projeto, via `.vscode/mcp.json` na raiz, restringindo a ação e análise do Supabase especificamente a este repositório sem afetar ambientes globais.
+
+> **Atenção — portas locais (drift):** o `supabase/config.toml` foi realocado das portas padrão (`543xx`) para a faixa **`553xx`** (api `55321`, db `55322`, studio `55323`). O `.vscode/mcp.json` ainda aponta para `http://127.0.0.1:54321/mcp` (porta antiga) e está **desalinhado** com o `config.toml`. Como a operação foi movida para o **Supabase remoto** (ver §2), o MCP local tende a ficar obsoleto; **pendência para o owner**: alinhar o `mcp.json` (55321) ou remover a integração local em favor do remoto.

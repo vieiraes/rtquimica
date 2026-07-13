@@ -2,7 +2,7 @@
 
 > Achados de [CODE_REVIEW.md](CODE_REVIEW.md). Marque `[x]` ao concluir. Cards concluídos permanecem no arquivo.
 >
-> **Última atualização:** 12/07/2026 16:49
+> **Última atualização:** 12/07/2026 21:21
 
 **Status:** ⬜ Pendente · ✅ Concluído
 
@@ -16,9 +16,11 @@
 
 - [x] **RTQ-3** · ✅ · Padronizar categorias do `seed.sql` em slugs
   - Seed usa `visita`/`orientacao`/`laudo`, alinhado a `categoryToUi`. — [supabase/seed.sql](supabase/seed.sql#L53)
-
+>
 - [ ] **RTQ-4** · ⬜ · Validar modo Supabase ponta a ponta
   - Login → dashboard → cadastro de RT → diário técnico sem erros no modo conectado.
+  - **Parcial (camada de dados validada contra Postgres real, local):** login OK; queries `technical_responsibilities` (4), `alerts` (8), `technical_actions` c/ join `order=action_date` (3, categorias `visita`/`orientacao`/`laudo`) OK; RLS isolando tenant. Confirmou na prática **RTQ-2** e **RTQ-3**.
+  - **Decisão (12/07):** abandonado o Supabase **local**; validar/operar em **Supabase remoto (Cloud)**. Faltam: `supabase link` + `db push` no remoto e re-teste. Inserts (cadastro de RT/diário) ainda não exercitados.
 
 - [x] **RTQ-5** · ✅ · Fallback de categoria `"other"` → `"outro"`
   - Fallback de `categoryToDb` agora é `"outro"`. — [src/App.tsx](src/App.tsx#L406)
@@ -47,15 +49,14 @@
 - [ ] **RTQ-11** · ⬜ · Error Boundary, testes e CI
   - Error Boundary + testes básicos (Vitest + Testing Library) + CI (lint + typecheck + build).
 
-- [ ] **RTQ-12** · ⬜ · Inicializar Git e publicar no GitHub _(infra — fora do escopo do CODE_REVIEW)_
-  - Repo ainda não versionado (`git init` necessário). `.gitignore` já cobre `node_modules`/`dist`/`.env`/`.env.local`.
-  - Passos (fornecidos pelo owner):
-    ```bash
-    git init
-    git add .
-    git commit -m "first commit"
-    git branch -M main
-    git remote add origin git@github.com:vieiraes/rtquimica.git
-    git push -u origin main
-    ```
-  - Notas: remote via **SSH** (requer chave configurada na conta GitHub). Sugiro `git add .` (não só o README) — o `.gitignore` já protege segredos/artefatos. Execução aguarda pedido explícito do owner (regra: não commitar/push automático).
+- [x] **RTQ-12** · ✅ · Inicializar Git e publicar no GitHub _(infra — fora do escopo do CODE_REVIEW)_
+  - Concluído: repo iniciado, commit inicial `239221d` ("first commit", autor `Bruno Vieira <vieira.es@gmail.com>`), branch `main` publicada em `git@github.com:vieiraes/rtquimica.git` com tracking `origin/main`.
+  - 79 arquivos versionados; `.gitignore` manteve `node_modules`/`dist`/`.env*` fora. SSH autenticado como `vieiraes`.
+
+- [ ] **RTQ-13** · ⬜ · GRANTs ausentes para roles da API (migration) _(descoberto na validação RTQ-4)_
+  - Tabelas têm RLS + policies, mas `anon`/`authenticated` não têm privilégio de tabela → `42501 permission denied` (app não lê nada no modo conectado). **Crítico também no remoto.**
+  - Feito quando: migration concedendo `grant`/`alter default privileges` a `anon, authenticated` (RLS segue controlando linhas) aplicada e validada. — [supabase/migrations/](supabase/migrations/)
+
+- [ ] **RTQ-14** · ⬜ · Seed de auth incompleto (login local quebrado) _(descoberto na validação RTQ-4; dev-only)_
+  - `seed.sql` inseria `auth.users` sem `aud`/`instance_id` (→ `invalid_credentials`) e com colunas de token em `NULL` (→ GoTrue 500). `aud`/`instance_id` **já corrigidos** em [supabase/seed.sql](supabase/seed.sql#L10); falta normalizar as colunas de token (`confirmation_token=''` etc.) no seed.
+  - Feito quando: `supabase db reset` local logar sem patch manual (ou marcar N/A se o local for descartado).

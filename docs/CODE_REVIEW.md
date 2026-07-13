@@ -131,7 +131,9 @@ Não foram encontrados indícios de SQL injection (uso de query builder parametr
 ## 6. Qualidade de código e manutenibilidade
 
 - **[Médio] Monólito de 1.154 linhas** em [src/App.tsx](src/App.tsx): dificulta revisão, reuso e testes. Extrair componentes para `src/components/` (Landing, Sidebar, Header, Dashboard, modais) e mapeadores/utilitários (`mapRt`, `mapAlert`, `mapAction`, `formatDate`) para `src/lib/`.
+  > ✅ **RESOLVIDO** (RTQ-7 · [BOARD_CODE_REVIEW.md](BOARD_CODE_REVIEW.md)) — `App.tsx` reduzido a ~365 linhas; componentes extraídos para [src/components/](src/components) (`primitives`/`modals`/`layout`/`landing`/`pages`) e utilitários para [src/lib/format.ts](src/lib/format.ts) e [src/lib/mappers.ts](src/lib/mappers.ts); payloads de tipo em [src/types.ts](src/types.ts).
 - **[Médio] Números e textos mágicos hardcoded na UI**: métricas fixas ("2 documentos a vencer", "78%", "18 dias", "214 dias restantes"), saudação fixa "Bom dia, Mariana" e data "Quarta-feira, 10 de junho" em [src/App.tsx](src/App.tsx#L52). Em modo conectado, esses valores não refletem os dados reais e induzem o usuário a erro.
+  > ✅ **RESOLVIDO** (RTQ-8 · [BOARD_CODE_REVIEW.md](BOARD_CODE_REVIEW.md)) — métricas do `Dashboard` agora derivadas de `rts`/`alerts` (documentos a vencer, conformidade média, vencidas, próximas renovações).
 - **[Médio] `progresso` derivado de forma arbitrária**: `mapRt` calcula `progresso: row.status === 'active' ? 80 : 35` ([src/App.tsx](src/App.tsx#L165)). O campo de conformidade exibido não vem da tabela `checklists`, que existe justamente para isso.
 - **[Baixo] Sem tratamento de `Promise` rejeitada em `refreshAlerts`/`markAlertsRead`** quando chamadas fora de um `try/catch` (ex.: `void onMarkRead()` no botão) — erros de rede seriam silenciados. Considerar um wrapper de erro central.
 - **[Baixo] Ausência de Error Boundary** e de estados de erro persistentes (só toasts efêmeros).

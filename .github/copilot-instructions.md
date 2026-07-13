@@ -109,5 +109,6 @@ O fluxo depende de o projeto usar **Prisma ORM** ou o **Supabase CLI puro**.
 - **Nunca marcar item como concluído sem evidência no código** — ler os arquivos/rodar verificações antes de afirmar; anexar nota curta de evidência.
 - Itens que ficaram obsoletos/N/A: sinalizar com `~~texto~~` + motivo, **não apagar**.
 - Existe o agente especialista **`docs-curator`** (`.github/agents/docs-curator.agent.md`) para essa tarefa — delegar a ele curadorias/sincronizações da pasta `docs/`.
+- **Escopo do `docs-curator` (inegociável):** o agente edita **exclusivamente** arquivos dentro de `docs/`. **Nunca** altera código nem arquivos fora de `docs/`. Pode sugerir melhorias e, se útil, escrever um arquivo de sugestões em `docs/` (ex.: `docs/SUGESTOES_CODIGO.md`); qualquer mudança de código é sempre do agente principal/owner.
 
 

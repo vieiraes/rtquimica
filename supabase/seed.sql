@@ -7,11 +7,11 @@ values
 on conflict (id) do nothing;
 
 -- Usuários (Senhas: 123456)
-insert into auth.users (id, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at, role)
+insert into auth.users (id, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at, role, aud, instance_id)
 values
-  ('11111111-1111-1111-1111-111111111111', 'superadmin@rtquimico.local', crypt('123456', gen_salt('bf')), now(), '{"provider": "email", "providers": ["email"]}', '{"nome": "Bruno (Super Admin)", "role": "superadmin", "tenant_id": "cccccccc-cccc-cccc-cccc-cccccccccccc"}', now(), now(), 'authenticated'),
-  ('22222222-2222-2222-2222-222222222222', 'mariana@rtquimico.local', crypt('123456', gen_salt('bf')), now(), '{"provider": "email", "providers": ["email"]}', '{"nome": "Mariana Vieira", "numero_crq": "04289123", "role": "tenant_admin", "tenant_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"}', now(), now(), 'authenticated'),
-  ('33333333-3333-3333-3333-333333333333', 'joao@rtquimico.local', crypt('123456', gen_salt('bf')), now(), '{"provider": "email", "providers": ["email"]}', '{"nome": "João Química", "role": "tenant_admin", "tenant_id": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"}', now(), now(), 'authenticated')
+  ('11111111-1111-1111-1111-111111111111', 'superadmin@rtquimico.local', crypt('123456', gen_salt('bf')), now(), '{"provider": "email", "providers": ["email"]}', '{"nome": "Bruno (Super Admin)", "role": "superadmin", "tenant_id": "cccccccc-cccc-cccc-cccc-cccccccccccc"}', now(), now(), 'authenticated', 'authenticated', '00000000-0000-0000-0000-000000000000'),
+  ('22222222-2222-2222-2222-222222222222', 'mariana@rtquimico.local', crypt('123456', gen_salt('bf')), now(), '{"provider": "email", "providers": ["email"]}', '{"nome": "Mariana Vieira", "numero_crq": "04289123", "role": "tenant_admin", "tenant_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"}', now(), now(), 'authenticated', 'authenticated', '00000000-0000-0000-0000-000000000000'),
+  ('33333333-3333-3333-3333-333333333333', 'joao@rtquimico.local', crypt('123456', gen_salt('bf')), now(), '{"provider": "email", "providers": ["email"]}', '{"nome": "João Química", "role": "tenant_admin", "tenant_id": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"}', now(), now(), 'authenticated', 'authenticated', '00000000-0000-0000-0000-000000000000')
 on conflict (id) do nothing;
 
 -- Identidades para o login funcionar
