@@ -168,7 +168,7 @@ A base técnica já está construída e validada: arquitetura **multi-tenant com
 - O limite de 6 RTs ativas reflete a regra prática do CRQ aplicável ao público-alvo.
 - A comunicação ao CRQ tem prazo de ~24h e é responsabilidade do profissional; o sistema gera o alerta, mas não substitui o envio.
 - Os profissionais têm disposição a pagar por uma ferramenta que reduza risco de multa.
-- A operação usa **Supabase remoto (Cloud)** como ambiente de referência (o modo local via CLI foi abandonado — decisão 12/07/2026).
+- Decisão de produto (12/07/2026): adotar o **Supabase remoto (Cloud)** como ambiente de referência e abandonar o modo local via CLI. **Pendente:** o projeto remoto ainda não foi criado/linkado — até a conclusão de `supabase link`/`db push` (RTQ-4), não há ambiente operacional validado ponta a ponta.
 - O público aceita operar em uma aplicação web responsiva (sem app nativo no MVP).
 
 ---
@@ -180,7 +180,7 @@ A base técnica já está construída e validada: arquitetura **multi-tenant com
 | **Regulatória** | Obrigações e prazos definidos pelo CRQ; regras podem variar por regional (CRQ-II, III, IV, etc.). |
 | **Financeira** | Investimento incremental controlado; monetização por assinatura com trial sem cartão. |
 | **Técnica** | Isolamento multi-tenant obrigatório via RLS; storage privado; base de dados modelada em inglês; frontend Vite/React. |
-| **Operacional** | Deploy executado pelo owner; migrations versionadas no Supabase CLI e aplicadas no remoto. |
+| **Operacional** | Deploy executado pelo owner; migrations versionadas no Supabase CLI, a serem aplicadas no remoto assim que o projeto remoto for criado/linkado (pendente — RTQ-4). |
 
 ---
 
@@ -238,7 +238,7 @@ A base técnica já está construída e validada: arquitetura **multi-tenant com
 - **Problema Resolvido:** falta de visibilidade da empresa sobre a própria RT.
 - **Fluxo de Alto Nível:** acesso somente leitura → status, responsável técnico e documentos.
 - **Valor de Negócio:** fortalece a relação profissional–empresa.
-- **Diferencial:** visão dedicada por papel (`tenant_client`).
+- **Diferencial:** visão dedicada por papel (`tenant_external_client`).
 
 ---
 
@@ -458,7 +458,7 @@ Empresa contratante →  Acessa portal                  →  Aplica RLS (somente
 
 ### RN-014 — Papéis e controle de acesso (RBAC)
 - **Objetivo:** definir o que cada papel vê e faz.
-- **Descrição:** papéis `superadmin`, `tenant_admin`, `tenant_member`, `tenant_client`.
+- **Descrição:** papéis `superadmin`, `tenant_admin`, `tenant_member`, `tenant_external_client`.
 - **Gatilho:** autenticação e renderização de telas/permissões.
 - **Entradas:** `role` do perfil.
 - **Condições:** papel do usuário autenticado.
@@ -499,7 +499,7 @@ Empresa contratante →  Acessa portal                  →  Aplica RLS (somente
 | `superadmin` | Dono do SaaS | Visão global de todos os tenants, métricas e receita; sobrepõe o isolamento. |
 | `tenant_admin` | Contratante principal do workspace | Gerencia workspace, assinatura e membros; acesso à Administração. |
 | `tenant_member` | Químico atuante | Registra RTs, ações e conformidade; sem privilégios administrativos. |
-| `tenant_client` | Empresa contratante | Somente leitura de um portal de acompanhamento. |
+| `tenant_external_client` | Empresa contratante | Somente leitura de um portal de acompanhamento. |
 
 ---
 
@@ -528,7 +528,7 @@ Empresa contratante →  Acessa portal                  →  Aplica RLS (somente
 | Priorizar o núcleo (RT + alertas + diário) como MVP | É onde está a proposta de valor e a disposição a pagar | Foco de investimento e go-to-market |
 | Aplicar o limite de 6 RTs no banco (trigger) | Garantir a regra do CRQ de forma inviolável | Segurança regulatória |
 | Isolamento por RLS em todas as tabelas | Confiança e conformidade (LGPD/sigilo) | Base do modelo multi-tenant |
-| Adotar Supabase remoto como ambiente de referência | Simplificar operação e validação (12/07/2026) | Fluxo local via CLI abandonado |
+| Adotar Supabase remoto como ambiente de referência | Simplificar operação e validação (12/07/2026) | Fluxo local via CLI abandonado; projeto remoto ainda não criado/linkado (pendente — RTQ-4) |
 | Provisionar workspace automaticamente no cadastro | Reduzir atrito de onboarding | Melhora ativação |
 | Trial de 7 dias sem cartão | Aumentar conversão de topo de funil | Estratégia de monetização |
 
@@ -543,6 +543,7 @@ Empresa contratante →  Acessa portal                  →  Aplica RLS (somente
 | O limite de 6 RTs é por workspace ou por profissional em assessorias? | Produto | Validar regra com especialista do CRQ |
 | A comunicação ao CRQ pode ser integrada/automatizada no futuro? | Produto | Investigar viabilidade regulatória |
 | A duração do trial (7 dias) será codificada no schema? | Produto + Engenharia | Definir onde reforçar a regra comercial |
+| Quando o projeto Supabase remoto (Cloud) será criado e linkado? | Engenharia | Executar `supabase link` + `db push` no remoto e revalidar RTQ-4 ponta a ponta |
 
 ---
 

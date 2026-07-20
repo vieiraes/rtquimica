@@ -14,7 +14,7 @@ A plataforma opera em arquitetura **Multi-tenant**, o que significa que atende t
   - CSS Vanilla (`styles.css`), suportando Dark/Light mode com `data-theme`.
   - Ícones da biblioteca `lucide-react`.
 - **Backend / Infraestrutura**:
-  - **Supabase** (Auth + Postgres com RLS + Storage). A operação/validação foi migrada para o **Supabase remoto (Cloud)** — o modo **local** (Supabase CLI) foi ~~a fonte principal de desenvolvimento~~ **abandonado** (decisão 12/07/2026, ver [BOARD_CODE_REVIEW.md](BOARD_CODE_REVIEW.md) RTQ-4).
+  - **Supabase** (Auth + Postgres com RLS + Storage). **Decisão (12/07/2026):** abandonar o modo **local** (Supabase CLI) como ~~fonte principal de desenvolvimento~~ e adotar o **Supabase remoto (Cloud)** como ambiente de referência — ver [BOARD_CODE_REVIEW.md](BOARD_CODE_REVIEW.md) RTQ-4. **Pendente:** o projeto remoto ainda não foi criado/linkado (sem `supabase link`/`db push` executados; `supabase/config.toml` só define o projeto local); até lá, a validação ponta a ponta segue bloqueada.
   - Controle de Acesso Baseado em Regras (RBAC) suportado nativamente pelo Postgres.
   - Banco de dados inteiramente modelado em **inglês**.
 - **Versionamento**:
@@ -27,7 +27,7 @@ O sistema utiliza um design de banco de dados voltado para isolamento por `tenan
 - `superadmin`: Dono do sistema SaaS. Tem acesso global a todos os Tenants, gere faturamento e pode visualizar qualquer dado na plataforma.
 - `tenant_admin`: O contratante principal do software. Tem permissão para visualizar todas as informações do próprio workspace e gerenciar assinaturas ou convites de membros.
 - `tenant_member`: O químico atuante. Pode registrar informações e ações no workspace, mas sem privilégios administrativos dentro do Tenant.
-- `tenant_client`: A empresa que recebe a RT (cliente final). Terá acesso de apenas-leitura a um portal dedicado para ver relatórios.
+- `tenant_external_client`: A empresa que recebe a RT (cliente final). Terá acesso de apenas-leitura a um portal dedicado para ver relatórios.
 
 ### Estrutura de Código Central
 Após a modularização (RTQ-7), o `App.tsx` deixou de ser um monólito (~1.154 → ~365 linhas) e passou a orquestrar componentes/utilitários extraídos:
@@ -64,4 +64,4 @@ Toda a modelagem foi migrada para nomenclatura em **inglês**. O banco adota for
 ## 5. Ferramentas e Integração do Agente (MCP)
 O projeto pode utilizar um servidor MCP do Supabase injetado em escopo de projeto, via `.vscode/mcp.json` na raiz, restringindo a ação e análise do Supabase especificamente a este repositório sem afetar ambientes globais.
 
-> **Atenção — portas locais (drift):** o `supabase/config.toml` foi realocado das portas padrão (`543xx`) para a faixa **`553xx`** (api `55321`, db `55322`, studio `55323`). O `.vscode/mcp.json` ainda aponta para `http://127.0.0.1:54321/mcp` (porta antiga) e está **desalinhado** com o `config.toml`. Como a operação foi movida para o **Supabase remoto** (ver §2), o MCP local tende a ficar obsoleto; **pendência para o owner**: alinhar o `mcp.json` (55321) ou remover a integração local em favor do remoto.
+> **Atenção — portas locais (drift):** o `supabase/config.toml` foi realocado das portas padrão (`543xx`) para a faixa **`553xx`** (api `55321`, db `55322`, studio `55323`). O `.vscode/mcp.json` ainda aponta para `http://127.0.0.1:54321/mcp` (porta antiga) e está **desalinhado** com o `config.toml`. Como a decisão é migrar a operação para o **Supabase remoto** (ver §2, projeto remoto ainda não criado/linkado), o MCP local tende a ficar obsoleto; **pendência para o owner**: alinhar o `mcp.json` (55321) ou remover a integração local em favor do remoto — e, antes disso, criar/linkar o projeto remoto (RTQ-4).

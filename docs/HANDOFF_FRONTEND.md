@@ -14,9 +14,10 @@ Um **SaaS web multi-tenant** chamado **RTQuímico** para **profissionais da Quí
 Entregáveis de front:
 1. **Landing page** de marketing (com captação/trial e painel de autenticação).
 2. **Autenticação** (login + cadastro).
-3. **Aplicação logada** com 9 telas + 3 modais (ver §5).
-4. **Design system** com tema claro/escuro (ver §9).
-5. **Responsivo** (desktop → mobile) e **acessível** (WCAG AA).
+3. **Aplicação logada** separada em **2 áreas**: Console da Plataforma (Superadmin) e Workspace Técnico (papéis do tenant).
+4. **Catálogo fechado de telas** com IDs obrigatórios (ver §4.1 e §5).
+5. **Design system** com tema claro/escuro (ver §9).
+6. **Responsivo** (desktop → mobile) e **acessível** (WCAG AA).
 
 Tom: **profissional, confiável, "tech de saúde/compliance"** — sério, limpo, com respiro. Idioma: **pt-BR**.
 
@@ -43,14 +44,16 @@ A plataforma é **multi-tenant**: cada profissional ou assessoria é um `tenant`
 
 | Papel (`app_role`) | Quem é | O que vê/faz no front |
 |---|---|---|
-| `superadmin` | Dono do SaaS | Painel administrativo global (métricas, usuários, receita). Vê tudo. |
-| `tenant_admin` | Contratante principal (químico/assessoria) | Todo o workspace + acesso ao painel **Administração** + assinatura. |
-| `tenant_member` | Químico atuante | Registra RTs, ações, checklist — sem administração. |
-| `tenant_client` | Empresa contratante (cliente final) | **Somente leitura** de um **Portal da empresa** (documentos, status da RT). |
+| `superadmin` | Dono do SaaS | **Somente Console de Plataforma**: dashboard global, CRUD de tenants, gestão de admins, assinaturas, provisionamento e auditoria operacional. |
+| `tenant_admin` | Contratante principal (químico/assessoria) | Workspace técnico completo + administração do próprio tenant (membros e dados da conta). |
+| `tenant_member` | Químico atuante | Workspace técnico operacional (RTs, alertas, diário, conformidade, POPs), sem administração do tenant. |
+| `tenant_external_client` | Empresa contratante (cliente final) | **Somente leitura** do Portal da empresa (status e documentos compartilhados). |
 
 Regras de visibilidade no front:
-- O item de menu **Administração** só aparece para `superadmin` ou `tenant_admin`.
-- O **Portal da empresa** é a visão simplificada para `tenant_client`.
+- `superadmin` **não navega** em telas técnicas de química por padrão.
+- `tenant_admin`/`tenant_member`/`tenant_external_client` **não navegam** no Console da Plataforma.
+- O **Portal da empresa** é a visão padrão de `tenant_external_client`.
+- Se houver impersonação de tenant para suporte, deve existir estado visual de "modo suporte" + log de auditoria.
 
 **Persona primária (design-for):** *Mariana Vieira, Química Industrial, CRQ-IV (SP)* — atende ~4–6 empresas, foco em não perder prazos e manter registros.
 
@@ -73,20 +76,73 @@ Regras de visibilidade no front:
 
 **Shell da aplicação:** sidebar fixa à esquerda (colapsável em mobile) + topbar sticky + área de conteúdo.
 
-**Navegação (sidebar) — grupo "GESTÃO":**
+### 4.1 Separação obrigatória de shells
+
+1. **Console da Plataforma** (`/platform/*`) — exclusivo de `superadmin`
+2. **Workspace Técnico** (`/app/*`) — `tenant_admin`, `tenant_member`, `tenant_external_client`
+
+### 4.2 Navegação por shell
+
+**Console da Plataforma (`superadmin`)**
+1. Dashboard da plataforma — `platform_dashboard`
+2. Tenants — `platform_tenants`
+3. Admins da plataforma — `platform_admins`
+4. Assinaturas e billing — `platform_subscriptions`
+5. Provisionamento — `platform_provisioning`
+6. Auditoria operacional — `platform_audit`
+7. Perfil do superadmin — `platform_profile`
+
+**Workspace Técnico (`tenant_admin`/`tenant_member`/`tenant_external_client`)**
 1. Visão geral (Dashboard) — `dashboard`
 2. Responsabilidades — `rts`
 3. Alertas — `alertas` *(badge com contagem de não lidos)*
 4. Diário técnico — `acoes`
 5. Conformidade — `checklist`
 6. Biblioteca de POPs — `pops`
-7. Portal da empresa — `empresa`
+7. Central de FISPQ — `fispq`
+8. Portal da empresa — `empresa`
+9. Administração do tenant — `tenant_admin_panel` *(somente `tenant_admin`)*
+10. Configurações (Perfil) — `perfil`
 
-**Grupo "SISTEMA":**
-8. Administração — `admin` *(condicional ao papel)*
-9. Configurações (Perfil) — `perfil`
+**Rotas obrigatórias:** usar React Router com deep-linking + histórico.
+- Público: `/`, `/entrar`
+- Plataforma: `/platform/dashboard`, `/platform/tenants`, `/platform/tenants/:id`, `/platform/admins`, `/platform/subscriptions`, `/platform/provisioning`, `/platform/audit`, `/platform/profile`
+- Tenant: `/app/dashboard`, `/app/rts`, `/app/rts/:id`, `/app/alertas`, `/app/acoes`, `/app/checklist`, `/app/pops`, `/app/fispq`, `/app/fispq/:id`, `/app/empresa`, `/app/admin`, `/app/perfil`
 
-**Rotas (recomendado):** hoje a navegação é por estado interno; **recomenda-se React Router** com deep-linking (ex.: `/app/dashboard`, `/app/rts`, `/app/rts/:id`) + histórico do navegador. Landing e auth em `/` e `/entrar`.
+### 4.3 Catálogo obrigatório de telas (escopo fechado)
+
+Esta lista define **exatamente** as telas a desenhar e implementar no frontend.
+
+| ID | Tela | Rota | Papel | Obrigatória |
+|---|---|---|---|---|
+| PUB-01 | Landing | `/` | público | Sim |
+| PUB-02 | Autenticação | `/entrar` | público | Sim |
+| PLT-01 | Dashboard da plataforma | `/platform/dashboard` | `superadmin` | Sim |
+| PLT-02 | CRUD de tenants (lista) | `/platform/tenants` | `superadmin` | Sim |
+| PLT-03 | Tenant detalhe/edição | `/platform/tenants/:id` | `superadmin` | Sim |
+| PLT-04 | CRUD de admins da plataforma | `/platform/admins` | `superadmin` | Sim |
+| PLT-05 | Assinaturas e billing | `/platform/subscriptions` | `superadmin` | Sim |
+| PLT-06 | Provisionamento de instâncias | `/platform/provisioning` | `superadmin` | Sim |
+| PLT-07 | Auditoria operacional | `/platform/audit` | `superadmin` | Sim |
+| PLT-08 | Perfil do superadmin | `/platform/profile` | `superadmin` | Sim |
+| APP-01 | Dashboard técnico | `/app/dashboard` | `tenant_admin`, `tenant_member` | Sim |
+| APP-02 | Responsabilidades técnicas | `/app/rts` | `tenant_admin`, `tenant_member` | Sim |
+| APP-03 | Alertas | `/app/alertas` | `tenant_admin`, `tenant_member` | Sim |
+| APP-04 | Diário técnico | `/app/acoes` | `tenant_admin`, `tenant_member` | Sim |
+| APP-05 | Conformidade | `/app/checklist` | `tenant_admin`, `tenant_member` | Sim |
+| APP-06 | Biblioteca de POPs | `/app/pops` | `tenant_admin`, `tenant_member` | Sim |
+| APP-07 | Portal da empresa | `/app/empresa` | `tenant_external_client` (foco) | Sim |
+| APP-08 | Administração do tenant | `/app/admin` | `tenant_admin` | Sim |
+| APP-09 | Perfil do usuário | `/app/perfil` | `tenant_admin`, `tenant_member`, `tenant_external_client` | Sim |
+| APP-10 | Central de FISPQ (lista) | `/app/fispq` | `tenant_admin`, `tenant_member` | Sim |
+| APP-11 | FISPQ detalhe e versões | `/app/fispq/:id` | `tenant_admin`, `tenant_member` | Sim |
+
+**Modais obrigatórios:**
+- MOD-01 Nova RT
+- MOD-02 Registrar ação técnica
+- MOD-03 Personalizar POP
+- MOD-04 Provisionar tenant / ativar-desativar assinatura
+- MOD-05 Publicar versão de FISPQ
 
 ---
 
@@ -113,7 +169,46 @@ Regras de visibilidade no front:
   - Link/nota: cadastro cria o perfil via trigger no banco.
 - **Estados:** loading (submit), erro (mensagem do provider), sucesso (redireciona ao dashboard). Há um **modo demo** (sem backend) — botão "Abrir demo" quando o Supabase não está configurado.
 
-### 5.3 Dashboard (`dashboard`)
+### 5.3 Console da Plataforma (`/platform/*`) — apenas `superadmin`
+
+#### 5.3.1 PLT-01 Dashboard da plataforma (`/platform/dashboard`)
+- **Objetivo:** visão executiva do SaaS.
+- **Conteúdo:** tenants ativos/inativos, MRR, churn, trials ativos, taxa de ativação, fila de provisionamento.
+- **Ações:** filtrar período, abrir tenant, abrir assinatura.
+
+#### 5.3.2 PLT-02 + PLT-03 Tenants (`/platform/tenants`, `/platform/tenants/:id`)
+- **Objetivo:** administrar clientes (tenants).
+- **Conteúdo:** tabela com status, plano, admins, data de criação; tela detalhe com abas "Dados", "Admins", "Assinatura", "Provisionamento".
+- **Ações:** criar/editar tenant, ativar/desativar, trocar plano, bloquear/desbloquear, reprovisionar.
+
+#### 5.3.3 PLT-04 Admins da plataforma (`/platform/admins`)
+- **Objetivo:** gerenciar operadores da plataforma.
+- **Conteúdo:** lista com papel interno, último acesso e status.
+- **Ações:** criar admin, alterar papel, revogar acesso, resetar convite.
+
+#### 5.3.4 PLT-05 Assinaturas (`/platform/subscriptions`)
+- **Objetivo:** acompanhar ciclo comercial.
+- **Conteúdo:** lista de assinaturas com plano, status (`trial`, `active`, `past_due`, `canceled`), próximas cobranças.
+- **Ações:** ativar, pausar, cancelar, reativar, registrar observação operacional.
+
+#### 5.3.5 PLT-06 Provisionamento (`/platform/provisioning`)
+- **Objetivo:** acompanhar e operar criação/configuração de instâncias.
+- **Conteúdo:** fila de jobs, duração, sucesso/falha, motivo do erro, tentativas.
+- **Ações:** iniciar provisionamento, retry, cancelar job, abrir detalhe técnico do job.
+
+#### 5.3.6 PLT-07 Auditoria operacional (`/platform/audit`)
+- **Objetivo:** rastreabilidade das ações de plataforma.
+- **Conteúdo:** timeline de eventos com operador, ação, alvo, timestamp, resultado.
+- **Ações:** filtrar por tenant/evento/período, exportar CSV.
+
+#### 5.3.7 PLT-08 Perfil superadmin (`/platform/profile`)
+- **Objetivo:** preferências e segurança da conta de plataforma.
+- **Conteúdo:** perfil, MFA (quando disponível), sessão ativa, preferências de tema/notificação.
+- **Ações:** atualizar perfil, encerrar sessões, trocar senha.
+
+### 5.4 Workspace Técnico (`/app/*`) — papéis de tenant
+
+#### 5.4.1 APP-01 Dashboard (`/app/dashboard`)
 - **Objetivo:** panorama diário das RTs.
 - **Blocos:**
   - **Cabeçalho de página** (eyebrow com data, saudação, subtítulo) + botão primário **Nova RT**.
@@ -125,54 +220,68 @@ Regras de visibilidade no front:
   - **FAB "Nova RT"** em mobile.
 - **Estados:** loading (skeleton/strip "sincronizando"), vazio (sem RTs → CTA cadastrar).
 
-### 5.4 Responsabilidades (`rts`)
+#### 5.4.2 APP-02 Responsabilidades (`/app/rts`)
 - **Objetivo:** gerir a carteira de RTs.
 - **Conteúdo:** toolbar (busca por empresa + filtros **Todas/Ativa/Pendente/Vencida** + botão Adicionar) → **tabela** com colunas: Empresa (logo+razão social+CNPJ), Documento (tipo+número), Vigência, Conformidade (%+barra), Status (chip), ações (⋯).
-- **Ações:** abrir "Nova RT" (modal 5.10), ver detalhes (toast/rota `/rts/:id` recomendada).
+- **Ações:** abrir "Nova RT" (MOD-01), ver detalhes (toast/rota `/rts/:id` recomendada).
 - **Estados:** vazio ("Nenhuma RT encontrada" + CTA), filtro sem resultado.
 
-### 5.5 Alertas (`alertas`)
+#### 5.4.3 APP-03 Alertas (`/app/alertas`)
 - **Objetivo:** priorizar prazos/pendências.
 - **Conteúdo:** resumo (N pendentes) + **Marcar como lidos**; **lista** de alertas com ícone por **nível** (ver §7): título, texto, tempo, "unread dot". Painel lateral **Preferências**: toggles E-mail, Push, SMS; antecedência 30 dias, lembrete 7 dias.
 - **Ações:** marcar 1 ou todos como lidos.
 - **Estados:** vazio (sem alertas), todos lidos.
 
-### 5.6 Diário técnico (`acoes`)
+#### 5.4.4 APP-04 Diário técnico (`/app/acoes`)
 - **Objetivo:** registrar ações técnicas auditáveis.
 - **Conteúdo:** toolbar (busca + período + **Registrar**) → **timeline** de ações (categoria, data/hora, empresa, descrição, nº de evidências/anexos). Card lateral "legal": mensagem de proteção profissional + **Exportar relatório PDF** + contador de ações (30 dias).
-- **Ações:** abrir "Registrar ação" (modal 5.11).
+- **Ações:** abrir "Registrar ação" (MOD-02).
 - **Estados:** vazio (sem registros).
 
-### 5.7 Conformidade (`checklist`)
+#### 5.4.5 APP-05 Conformidade (`/app/checklist`)
 - **Objetivo:** acompanhar itens obrigatórios por empresa.
 - **Conteúdo:** seletor de empresa; **score ring** (% conforme); checklist de itens obrigatórios (marcáveis, com prioridade nos pendentes); card **Próximos passos** (sugestões) + "Ver plano de ação".
 - **Ações:** marcar/desmarcar itens; salvar revisão (toast).
 - **Estados:** progresso 0–100%; mensagem muda conforme ≥80%.
 
-### 5.8 Biblioteca de POPs (`pops`)
+#### 5.4.6 APP-06 Biblioteca de POPs (`/app/pops`)
 - **Objetivo:** partir de modelos de procedimento.
 - **Conteúdo:** toolbar (busca por título/segmento + "Meus POPs") → **grid de cards** (ícone por tom, segmento, título, descrição, tempo de leitura, "Usar modelo").
-- **Ações:** "Usar modelo" → editor (modal 5.12).
+- **Ações:** "Usar modelo" → editor (MOD-03).
 - **Estados:** busca sem resultado.
 
-### 5.9 Portal da empresa (`empresa`)
+#### 5.4.7 APP-07 Portal da empresa (`/app/empresa`)
 - **Objetivo:** visão simplificada para a empresa contratante (cliente).
 - **Conteúdo:** hero de status ("Regular"), card do responsável técnico (contato), **situação da RT** (documento vigente, dias restantes, barra), **documentos compartilhados** (lista para download).
 - **Estados:** sem empresa vinculada → empty state.
 
-### 5.10 Administração (`admin`) — condicional
-- **Objetivo:** visão do dono do SaaS.
-- **Conteúdo:** 4 stat cards (Usuários ativos, RTs cadastradas, Receita mensal, Taxa de renovação) + tabela de usuários recentes (nome, registro, plano, status).
-- **Acesso:** só `superadmin`/`tenant_admin`.
+#### 5.4.8 APP-08 Administração do tenant (`/app/admin`) — `tenant_admin`
+- **Objetivo:** administrar somente o próprio workspace.
+- **Conteúdo:** membros, convites pendentes, dados cadastrais do tenant, plano e status da conta.
+- **Ações:** convidar/remover membro, alterar perfil de membro, atualizar dados do tenant.
 
-### 5.11 Perfil & Configurações (`perfil`)
+#### 5.4.9 APP-09 Perfil & Configurações (`/app/perfil`)
 - **Objetivo:** dados profissionais, plano e preferências.
 - **Conteúdo:** card de perfil (avatar, plano atual, próxima cobrança, gerenciar assinatura); formulário de dados profissionais (nome, CRQ, e-mail, telefone, regional, especialidade); seção **Aparência** (toggle modo escuro); salvar.
 
+#### 5.4.10 APP-10 Central de FISPQ (`/app/fispq`)
+- **Objetivo:** localizar e gerir fichas de segurança por tenant.
+- **Conteúdo:** toolbar com busca e filtros (produto, CAS, fabricante, status, revisão), botão **Nova FISPQ**, tabela/lista com produto, fabricante, versão atual, data de revisão e status.
+- **Ações:** criar ficha, editar metadados, enviar para revisão, arquivar.
+- **Estados:** vazio com CTA de criação, loading com skeleton e erro com ação de tentar novamente.
+
+#### 5.4.11 APP-11 FISPQ detalhe e versões (`/app/fispq/:id`)
+- **Objetivo:** revisar conteúdo, anexos e histórico de versões da ficha.
+- **Conteúdo:** cabeçalho com status, metadados e responsável; abas **Seções ABNT**, **Versões**, **Auditoria**, **Arquivos**; painel de compartilhamento para leitura externa.
+- **Ações:** criar nova versão, anexar PDF, aprovar publicação (`tenant_admin`), compartilhar para `tenant_external_client`.
+- **Estados:** sem versão publicada (rascunho inicial), versão aprovada, versão arquivada.
+
 ### Modais
-- **5.10-M Nova RT:** empresa, CNPJ, tipo de documento (TRT/ART/CRT), regional (CRQ-IV/III/II), data de início, data de vigência, observações. Info: ao salvar, cria **alerta de comunicação ao CRQ (24h)**.
-- **5.11-M Registrar ação técnica:** empresa (select das RTs), categoria (Visita técnica/Coleta/Análise/Laudo/Orientação/Outro), descrição, **upload** de fotos/documentos (PDF/JPG/PNG, até 10 MB).
-- **5.12-M Personalizar POP:** título + conteúdo (editor de texto multi-linha) → salvar na biblioteca.
+- **MOD-01 Nova RT:** empresa, CNPJ, tipo de documento (TRT/ART/CRT), regional (CRQ-IV/III/II), data de início, data de vigência, observações. Info: ao salvar, cria **alerta de comunicação ao CRQ (24h)**.
+- **MOD-02 Registrar ação técnica:** empresa (select das RTs), categoria (Visita técnica/Coleta/Análise/Laudo/Orientação/Outro), descrição, **upload** de fotos/documentos (PDF/JPG/PNG, até 10 MB).
+- **MOD-03 Personalizar POP:** título + conteúdo (editor de texto multi-linha) → salvar na biblioteca.
+- **MOD-04 Provisionar tenant / assinatura:** ativar/desativar tenant, ativar/pausar/cancelar assinatura, motivo obrigatório e confirmação dupla.
+- **MOD-05 Publicar versão de FISPQ:** resumo da versão, confirmação de revisão humana, registro da fonte e justificativa opcional da mudança.
 
 **Padrão de modal:** overlay, foco preso (focus trap), fechar por **Esc** e clique no backdrop, `role="dialog"` + `aria-modal`.
 
@@ -183,13 +292,19 @@ Regras de visibilidade no front:
 > O front consome estas entidades (Postgres/Supabase). Campos-chave abaixo.
 
 - **tenants**: `id`, `name`, `plan` (`basic|pro|enterprise`).
-- **profiles**: `id`, `tenant_id`, `role` (`superadmin|tenant_admin|tenant_member|tenant_client`), `email`, `name`, `crq_number`, `crq_state`, `phone`, `avatar_url`.
+- **profiles**: `id`, `tenant_id`, `role` (`superadmin|tenant_admin|tenant_member|tenant_external_client`), `email`, `name`, `crq_number`, `crq_state`, `phone`, `avatar_url`.
+- **subscriptions** (contrato comercial): `tenant_id`, `status`, `plan`, `trial_ends_at`, `current_period_end`.
+- **provisioning_jobs** (operação da plataforma): `tenant_id`, `status`, `started_at`, `finished_at`, `error_message`.
+- **audit_events** (auditoria operacional): `actor_id`, `tenant_id`, `action`, `target_type`, `target_id`, `metadata`, `created_at`.
 - **technical_responsibilities** (RT): `company_name`, `company_cnpj`, `document_type` (`TRT|ART|CRT|other`), `document_number`, `start_date`, `end_date`, `status` (`active|pending|expired|canceled`), `crq_region`, `notes`.
 - **documents**: `rt_id`, `name`, `type`, `file_url`.
 - **alerts**: `rt_id?`, `type`, `title`, `message`, `is_read`, `created_at`.
 - **technical_actions**: `rt_id`, `category` (slug: `visita|coleta|analise|laudo|orientacao|outro`), `description`, `action_date`, `attachments` (jsonb).
 - **checklists**: `rt_id`, `status`, `items` (jsonb), `progress` (0–100).
 - **sop_templates**: `title`, `segment`, `content`; **globais** quando `tenant_id` é nulo.
+- **fispq_documents**: `tenant_id`, `product_name`, `cas_number`, `manufacturer_name`, `status`, `issue_date`, `review_date`, `source_type`, `source_url`, `responsible_profile_id`, `current_version`.
+- **fispq_versions**: `fispq_id`, `tenant_id`, `version_number`, `sections_json`, `pdf_path`, `change_summary`, `created_by`, `created_at`.
+- **fispq_audit_events**: `fispq_id`, `tenant_id`, `event_type`, `payload`, `actor_profile_id`, `created_at`.
 
 **Mapeamento de status (DB → UI):** `active→Ativa`, `pending→Pendente`, `expired→Vencida`, `canceled→Cancelada`.
 **Categoria de ação (slug ↔ rótulo):** `visita→Visita técnica`, `coleta→Coleta`, `analise→Análise`, `laudo→Laudo`, `orientacao→Orientação`, `outro→Outro`.
@@ -200,13 +315,21 @@ Regras de visibilidade no front:
 
 1. **Limite de 6 RTs ativas** por tenant — mostrar uso ("X de 6"), vagas disponíveis e % do limite.
 2. **Alerta automático de comunicação ao CRQ** ao criar/cancelar RT (prazo 24h).
-3. **Níveis de alerta (cor/ícone) por tipo:**
+3. **Segregação de domínio por papel (obrigatória):**
+  - `superadmin` usa apenas `/platform/*`.
+  - Papéis de tenant usam apenas `/app/*`.
+  - Qualquer acesso indevido deve redirecionar para tela permitida + mensagem de permissão.
+4. **Níveis de alerta (cor/ícone) por tipo:**
    - `vencimento_7` → **danger** (vermelho)
    - `vencimento_30`, `comunicacao_pendente` → **warning** (âmbar)
    - `renovacao` → **success** (verde)
    - demais (`info`, "documento solicitado") → **info** (azul/neutro)
-4. **Isolamento por tenant** — o usuário só vê dados do próprio workspace (o back garante via RLS; o front não deve assumir dados de outros tenants).
-5. **Modo demo** — quando o backend não está configurado, a app roda com dados mockados (útil para preview/design).
+5. **Isolamento por tenant** — o usuário só vê dados do próprio workspace (o back garante via RLS; o front não deve assumir dados de outros tenants).
+6. **Ações críticas de plataforma** (desativar tenant, cancelar assinatura, reprovisionar) exigem confirmação dupla + justificativa.
+7. **Auditoria obrigatória** para ações administrativas da plataforma e do tenant.
+8. **Modo demo** — quando o backend não está configurado, a app roda com dados mockados (útil para preview/design).
+9. **FISPQ exige revisão humana para publicar** — versões em rascunho não podem ser expostas como aprovadas.
+10. **Compartilhamento externo controlado** — `tenant_external_client` só visualiza fichas explicitamente compartilhadas.
 
 ---
 
@@ -316,6 +439,9 @@ texto #e9f0f5   fundo #0f1923
 3. **Registrar ação:** Diário → Registrar (modal) → descrição + evidências → entra na timeline.
 4. **Acompanhar prazo:** Dashboard/Alertas destacam vencimentos (7/30 dias) → usuário renova.
 5. **Cliente:** Portal da empresa (somente leitura) vê status e documentos.
+6. **Superadmin cria tenant:** Console plataforma → Tenants → Criar tenant → Provisionar → status "ativo".
+7. **Superadmin gerencia assinatura:** Assinaturas → ativar/pausar/cancelar → evento registrado em auditoria.
+8. **Ciclo FISPQ:** Central FISPQ → Nova ficha → Upload/edição → Revisão → Publicar versão → Compartilhar com empresa.
 
 ---
 
@@ -323,11 +449,12 @@ texto #e9f0f5   fundo #0f1923
 
 1. **Design system** (tokens + componentes) documentado (Storybook recomendado).
 2. **Landing** responsiva + **fluxo de auth**.
-3. **App shell** (sidebar + topbar) + **9 telas** + **3 modais** conforme §5.
-4. **Tema claro/escuro** com persistência.
-5. **Acessibilidade AA** (checklist §11 atendido).
-6. **Integração** com Supabase (auth + leitura/escrita das entidades §6) **ou** camada mockada plugável.
-7. **Estados** de loading/vazio/erro em todas as telas.
+3. **2 app shells** (Plataforma e Tenant) com roteamento e guardas por papel.
+4. **21 telas obrigatórias** (2 públicas + 8 plataforma + 11 tenant) + **5 modais** conforme §4.3 e §5.
+5. **Tema claro/escuro** com persistência.
+6. **Acessibilidade AA** (checklist §11 atendido).
+7. **Integração** com Supabase (auth + leitura/escrita das entidades §6) **ou** camada mockada plugável.
+8. **Estados** de loading/vazio/erro em todas as telas.
 
 ---
 
@@ -341,16 +468,25 @@ texto #e9f0f5   fundo #0f1923
 
 ### Apêndice A — Mapa rápido de telas × papéis
 
-| Tela | superadmin | tenant_admin | tenant_member | tenant_client |
+| Tela | superadmin | tenant_admin | tenant_member | tenant_external_client |
 |---|:--:|:--:|:--:|:--:|
-| Dashboard | ✔ | ✔ | ✔ | – |
-| Responsabilidades | ✔ | ✔ | ✔ | – |
-| Alertas | ✔ | ✔ | ✔ | – |
-| Diário técnico | ✔ | ✔ | ✔ | – |
-| Conformidade | ✔ | ✔ | ✔ | – |
-| POPs | ✔ | ✔ | ✔ | – |
-| Portal da empresa | ✔ | ✔ | ✔ | ✔ (foco) |
-| Administração | ✔ | ✔ | – | – |
-| Perfil | ✔ | ✔ | ✔ | ✔ |
+| Dashboard da plataforma | ✔ | – | – | – |
+| Tenants (lista + detalhe) | ✔ | – | – | – |
+| Admins da plataforma | ✔ | – | – | – |
+| Assinaturas | ✔ | – | – | – |
+| Provisionamento | ✔ | – | – | – |
+| Auditoria operacional | ✔ | – | – | – |
+| Perfil superadmin | ✔ | – | – | – |
+| Dashboard técnico | – | ✔ | ✔ | – |
+| Responsabilidades | – | ✔ | ✔ | – |
+| Alertas | – | ✔ | ✔ | – |
+| Diário técnico | – | ✔ | ✔ | – |
+| Conformidade | – | ✔ | ✔ | – |
+| POPs | – | ✔ | ✔ | – |
+| Central de FISPQ | – | ✔ | ✔ | – |
+| FISPQ detalhe e versões | – | ✔ | ✔ | – |
+| Portal da empresa | – | ✔ | ✔ | ✔ (foco) |
+| Administração do tenant | – | ✔ | – | – |
+| Perfil do usuário | – | ✔ | ✔ | ✔ |
 
 _Documento de handoff — gerado para o time de Frontend do RTQuímico._

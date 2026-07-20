@@ -61,6 +61,7 @@ Antes das features, o alicerce. Quase tudo aqui depende destes 6 pontos:
 2. Montar um **repositório curado** de links/PDFs de FISPQ por fabricante + upload no Storage do workspace.
 3. (Futuro) parceria/base de fornecedores.
 **Recomendação:** vender como **"Central de Segurança Química"** (dados GHS do PubChem + repositório de FISPQ do workspace), **não** como "buscador mágico de FISPQ" — para não prometer o que a web não entrega.
+**Detalhamento de execução futura:** ver `docs/PLANO_IMPLEMENTACAO_FISPQ.md` e board associado em `docs/BOARD_PLANO_IMPLEMENTACAO_FISPQ.md`.
 
 ### 2.4 CNAE → "exige RT? quais documentos/obrigações?" 📚 — *Esforço M · Risco médio*
 **O quê:** dado o CNAE da empresa, dizer se exige RT, quais documentos e obrigações.
