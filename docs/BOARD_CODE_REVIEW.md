@@ -1,18 +1,18 @@
 # 🗂️ Board — Code Review RTQuímico
 
-> Achados de [CODE_REVIEW.md](CODE_REVIEW.md). Marque `[x]` ao concluir. Cards concluídos permanecem no arquivo.
+> Achados de [CODE_REVIEW.md](arquivados/CODE_REVIEW.md) _(arquivado em 22/07/2026 pela curadoria de documentação — relatório datado de 12/07/2026 cujos itens acionáveis já estão totalmente refletidos neste board, que é o artefato vivo de acompanhamento)_. Marque `[x]` ao concluir. Cards concluídos permanecem no arquivo.
 >
-> **Última atualização:** 12/07/2026 21:21
+> **Última atualização:** 22/07/2026 20:01
 
 **Status:** ⬜ Pendente · ✅ Concluído
 
 ---
 
 - [x] **RTQ-1** · ✅ · Destravar o build (prop `role` no `Sidebar`)
-  - `role?: string;` adicionado às props do `Sidebar`; `npx tsc -b` passa. — [src/App.tsx](src/App.tsx#L677)
+  - `role?: string;` adicionado às props do `Sidebar`; `npx tsc -b` passa. — [src/components/layout.tsx](src/components/layout.tsx#L66) _(nota de curadoria 22/07/2026: referência de linha atualizada — `Sidebar` foi movido de `src/App.tsx` para `src/components/layout.tsx` no RTQ-7)_
 
 - [x] **RTQ-2** · ✅ · Corrigir coluna `data_acao` → `action_date`
-  - Query de `technical_actions` ordena por `action_date`. — [src/App.tsx](src/App.tsx#L243)
+  - Query de `technical_actions` ordena por `action_date`. — [src/App.tsx](src/App.tsx#L82) _(nota de curadoria 22/07/2026: linha atualizada, mesmo arquivo)_
 
 - [x] **RTQ-3** · ✅ · Padronizar categorias do `seed.sql` em slugs
   - Seed usa `visita`/`orientacao`/`laudo`, alinhado a `categoryToUi`. — [supabase/seed.sql](supabase/seed.sql#L53)
@@ -23,7 +23,7 @@
   - **Decisão (12/07):** abandonado o Supabase **local**; validar/operar em **Supabase remoto (Cloud)**. Faltam: `supabase link` + `db push` no remoto e re-teste. Inserts (cadastro de RT/diário) ainda não exercitados.
 
 - [x] **RTQ-5** · ✅ · Fallback de categoria `"other"` → `"outro"`
-  - Fallback de `categoryToDb` agora é `"outro"`. — [src/App.tsx](src/App.tsx#L406)
+  - Fallback de `categoryToDb` agora é `"outro"`. — [src/App.tsx](src/App.tsx#L245) (chama `categoryToDb` de [src/lib/mappers.ts](src/lib/mappers.ts#L11)) _(nota de curadoria 22/07/2026: linha atualizada após RTQ-7)_
 
 - [x] **RTQ-6** · ✅ · Eliminar duplicação `schema.sql` × migration
   - `schema.sql` removido; migration é a fonte única. README e GEMINI repontados. — [supabase/migrations/20260610085000_rtquimica_schema.sql](supabase/migrations/20260610085000_rtquimica_schema.sql)
@@ -38,7 +38,7 @@
     - páginas (`Dashboard`/`Responsibilities`/`Alerts`/`TechnicalDiary`/`Compliance`/`Pops`/`CompanyPortal`/`Admin`/`Profile`) → [src/components/pages.tsx](src/components/pages.tsx)
 
 - [x] **RTQ-8** · ✅ · Substituir métricas hardcoded por dados reais
-  - Dashboard deriva de `rts`/`alerts`: "Documentos a vencer" (vigência ≤30 dias), "Conformidade média" (média de `progresso`), "Vencidas" no donut e "Próximas renovações" (dias/mês calculados via helper `daysUntil`). — [src/App.tsx](src/App.tsx#L759)
+  - Dashboard deriva de `rts`/`alerts`: "Documentos a vencer" (vigência ≤30 dias), "Conformidade média" (média de `progresso`), "Vencidas" no donut e "Próximas renovações" (dias/mês calculados via helper `daysUntil`). — [src/components/pages.tsx](src/components/pages.tsx#L8) _(nota de curadoria 22/07/2026: `Dashboard` foi movido de `src/App.tsx` para `src/components/pages.tsx` no RTQ-7; `daysUntil` vive em [src/lib/format.ts](src/lib/format.ts#L23))_
 
 - [ ] **RTQ-9** · ⬜ · Hardening: `search_path` em funções `security definer`
   - `create_rt_communication_alert` e `current_user_*` devem fixar `set search_path = ''`. — [supabase/migrations/20260610085000_rtquimica_schema.sql](supabase/migrations/20260610085000_rtquimica_schema.sql)

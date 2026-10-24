@@ -87,6 +87,7 @@ A base técnica já está construída e validada: arquitetura **multi-tenant com
   2. **À prova de esquecimento** — o caminho fácil é o caminho correto.
   3. **Auditável por padrão** — todo registro serve como evidência.
   4. **Isolamento e confiança** — dados de cada workspace são estanques.
+  5. **Kit de Defesa em Fiscalização** *(proposta — ver §13.7)* — não apenas gerar um PDF genérico, mas empacotar linha do tempo de ações técnicas, documentos vigentes e histórico de comunicações ao CRQ em um export único, pronto para o profissional entregar a um auditor no momento da fiscalização.
 
 ---
 
@@ -240,6 +241,17 @@ A base técnica já está construída e validada: arquitetura **multi-tenant com
 - **Valor de Negócio:** fortalece a relação profissional–empresa.
 - **Diferencial:** visão dedicada por papel (`tenant_external_client`).
 
+### 13.7 Kit de Defesa em Fiscalização *(proposta — não implementada)*
+
+> **Aviso:** esta funcionalidade **ainda não existe no código**. É uma proposta de produto formalizada em 20/07/2026, sem RN associada no catálogo §15. Nenhuma evidência de `supabase/` ou `src/` deve ser inferida a partir deste item até que haja implementação real.
+
+- **Objetivo:** transformar os dados já coletados hoje (diário técnico, checklist de conformidade e alertas/comunicações ao CRQ) em um único export estruturado, pronto para o profissional apresentar a um auditor do CRQ no momento da fiscalização.
+- **Problema Resolvido:** hoje, mesmo com o diário auditável e o checklist funcionando, o profissional fiscalizado não tem uma forma rápida e formatada de reunir "prova de diligência" — teria que montar isso manualmente, sob pressão, no momento da fiscalização.
+- **Fluxo de Alto Nível (proposto):** profissional seleciona a RT/empresa fiscalizada → sistema compila linha do tempo de ações técnicas (RN-008), status de documentos vigentes e histórico de comunicações ao CRQ (RN-002) → gera um export único (formato a definir, ex. PDF estruturado) → profissional entrega ao auditor.
+- **Valor de Negócio:** é o ponto de conversão mais direto entre "uso diário do produto" e "resultado tangível na hora que mais importa" (a fiscalização) — reforça o North Star de "toda atuação técnica comprovável" com um artefato concreto.
+- **Diferencial:** não é um relatório em PDF genérico — é um pacote estruturado combinando três fontes de evidência já existentes no produto (diário, documentos, comunicações), pensado especificamente para o momento de defesa perante o CRQ. É um refinamento mais afiado do investimento em "geração de relatório em PDF" já previsto em §21/§23.
+- **Pendência crítica:** o formato do kit precisa de validação com um especialista do CRQ antes de ser posicionado como "prova" com valor jurídico real — sem essa validação, o risco é entregar um PDF bem formatado mas sem força probatória de fato (ver §19).
+
 ---
 
 ## 14. Jornada de Alto Nível
@@ -304,7 +316,7 @@ Empresa contratante →  Acessa portal                  →  Aplica RLS (somente
 - **Impacto Financeiro:** evita perda de prazo e autuação.
 - **Impacto Operacional:** direciona a renovação a tempo.
 - **Impacto Regulatório:** mantém a RT vigente.
-- **Evidência:** tipos `vencimento_30`/`vencimento_7` e `alertLevel` em `src/lib/mappers.ts`. **Pendência:** o disparo temporal automático depende da camada de notificações (ver §19).
+- **Evidência:** os tipos `vencimento_30`/`vencimento_7` e a função `alertLevel` (severidade) existem em `src/lib/mappers.ts`, mas **não há nenhum mecanismo de backend que gere esses alertas**. Em `supabase/migrations/20260610085000_rtquimica_schema.sql` só existem duas triggers de alerta: `enforce_active_rt_limit` (RN-001) e `create_rt_communication_alert` (RN-002, que só insere `comunicacao_pendente` em `INSERT`/cancelamento de RT) — não há trigger, `pg_cron` nem edge function que insira `vencimento_30`/`vencimento_7` em `public.alerts` (confirmado por busca em `supabase/migrations/*.sql` por `cron`/`pg_cron`/"edge function": nenhuma ocorrência). O único cálculo de proximidade de vencimento é `daysUntil()` em `src/lib/format.ts`, usado apenas client-side em `src/components/pages.tsx` (`Dashboard`) para exibir contadores/ordenar renovações — roda sob demanda, só quando o usuário abre o Dashboard, e **não persiste nenhum registro em `alerts`**. **Pendência real:** não é "falta canal externo (e-mail/push) para um alerta que já existe internamente" — é que **o alerta em si (o registro `vencimento_30`/`vencimento_7`) nunca é gerado**, nem internamente. Ver questão em aberto correspondente em §19 e leitura complementar em `docs/ANALISE_VIABILIDADE_VISAO_DE_PRODUTO.md`.
 
 ### RN-004 — Severidade dos alertas
 - **Objetivo:** priorizar a atenção do usuário por criticidade.
@@ -531,6 +543,7 @@ Empresa contratante →  Acessa portal                  →  Aplica RLS (somente
 | Adotar Supabase remoto como ambiente de referência | Simplificar operação e validação (12/07/2026) | Fluxo local via CLI abandonado; projeto remoto ainda não criado/linkado (pendente — RTQ-4) |
 | Provisionar workspace automaticamente no cadastro | Reduzir atrito de onboarding | Melhora ativação |
 | Trial de 7 dias sem cartão | Aumentar conversão de topo de funil | Estratégia de monetização |
+| Priorizar o Kit de Defesa em Fiscalização (§13.7) como reforço/refinamento do investimento em relatório PDF (20/07/2026) | É o maior diferencial ainda não explorado: converte dados já coletados (diário, checklist, comunicações ao CRQ) em prova de diligência pronta para uso em fiscalização — mais afiado que um PDF genérico | Reordena a fila de investimento: o Kit de Defesa passa a competir por prioridade com a camada de notificações externas (e-mail/push) na Fase 1 (ver §21/§23); formato ainda precisa de validação jurídica com especialista do CRQ (ver §19) |
 
 ---
 
@@ -538,8 +551,9 @@ Empresa contratante →  Acessa portal                  →  Aplica RLS (somente
 
 | Pergunta | Responsável | Próximo Passo |
 |---|---|---|
+| O formato do Kit de Defesa em Fiscalização (§13.7) tem valor jurídico/probatório real perante uma fiscalização do CRQ? | Produto + especialista jurídico/CRQ | Validar o formato do export com um especialista do CRQ antes de posicionar o kit como "prova" — sem essa validação, vira apenas um PDF bem formatado, sem força probatória |
 | Qual provedor de e-mail/push para as notificações externas? | Produto + Engenharia | Avaliar opções e custo |
-| O disparo temporal dos alertas 30/7 dias será por job agendado? | Engenharia | Definir mecanismo (cron/edge function) |
+| Como implementar o disparo automático dos alertas de vencimento (RN-003)? Hoje **não existe geração alguma do registro `vencimento_30`/`vencimento_7`** — nem trigger, nem `pg_cron`, nem edge function no backend; o único cálculo (`daysUntil()`) é client-side, sob demanda, só quando o usuário abre o Dashboard, e não persiste nada em `alerts` (evidência em RN-003). A lacuna é mais fundamental do que "falta canal externo (e-mail/push)": falta o próprio motor de disparo temporal interno. | Engenharia | Definir e implementar o mecanismo de disparo (cron/edge function) que insira os registros em `alerts`; leitura complementar em `docs/ANALISE_VIABILIDADE_VISAO_DE_PRODUTO.md` |
 | O limite de 6 RTs é por workspace ou por profissional em assessorias? | Produto | Validar regra com especialista do CRQ |
 | A comunicação ao CRQ pode ser integrada/automatizada no futuro? | Produto | Investigar viabilidade regulatória |
 | A duração do trial (7 dias) será codificada no schema? | Produto + Engenharia | Definir onde reforçar a regra comercial |
@@ -564,7 +578,7 @@ Empresa contratante →  Acessa portal                  →  Aplica RLS (somente
 
 ### Fase 1 — MVP (núcleo comercializável)
 - **Objetivos:** transformar a proposta de valor em produto vendável.
-- **Funcionalidades:** gestão de RT (RN-001, RN-005, RN-006), alertas automáticos (RN-002, RN-003, RN-004), diário auditável (RN-008), isolamento/segurança (RN-007, RN-011, RN-014), provisionamento (RN-013), planos/trial (RN-012) + investimento em **notificações externas (e-mail/push)** e **relatório em PDF**.
+- **Funcionalidades:** gestão de RT (RN-001, RN-005, RN-006), alertas automáticos (RN-002, RN-003, RN-004), diário auditável (RN-008), isolamento/segurança (RN-007, RN-011, RN-014), provisionamento (RN-013), planos/trial (RN-012) + investimento em **geração de evidências em PDF, priorizando o Kit de Defesa em Fiscalização (§13.7 — proposta, pendente de validação jurídica)** como refinamento desse investimento, e **notificações externas (e-mail/push)** (reordenada para depois na fila, ver decisão de 20/07/2026 em §18).
 - **Resultado Esperado:** MVP go-to-market com North Star e conversão trial→pago mensuráveis.
 
 ### Fase 2 — Expansão (colaboração e escala)
@@ -592,7 +606,7 @@ Empresa contratante →  Acessa portal                  →  Aplica RLS (somente
 ## 23. Pedido à Liderança
 
 - **Decisão:** aprovar a Fase 1 (núcleo RT + alertas + diário) como MVP go-to-market.
-- **Investimento:** liberar orçamento para a **camada de notificações externas (e-mail/push)** e a **geração de relatório em PDF**.
+- **Investimento:** liberar orçamento para a **geração de evidências em PDF**, priorizando dentro dela o **Kit de Defesa em Fiscalização** (§13.7 — proposta formalizada em 20/07/2026, ainda não implementada e pendente de validação com especialista do CRQ), e, na sequência, a **camada de notificações externas (e-mail/push)**.
 - **Recursos:** alocar time de produto e engenharia para o núcleo e a parametrização por regional do CRQ.
 - **Aprovações esperadas:** validação de duas métricas de sucesso (North Star + conversão trial→pago) como critério de continuidade do investimento.
 
@@ -627,4 +641,14 @@ Empresa contratante →  Acessa portal                  →  Aplica RLS (somente
 
 ---
 
-_Documento de Visão de Produto & Regras de Negócio — RTQuímico. Status: Draft (12/07/2026). Base para decisão de priorização e investimento; regras de negócio derivadas de evidência no código._
+## Changelog
+
+| Data | Mudança |
+|---|---|
+| 22/07/2026 | **Correção de evidência em RN-003** (curadoria de documentação): a nota anterior dava a entender que o alerta de vencimento (30/7 dias) já era gerado internamente e só faltava o canal externo (e-mail/push). Confirmado por leitura de código (`supabase/migrations/20260610085000_rtquimica_schema.sql`, `src/lib/format.ts`, `src/components/pages.tsx`) que **não existe geração alguma do registro `vencimento_30`/`vencimento_7`** — nem trigger, nem `pg_cron`, nem edge function; o único cálculo (`daysUntil()`) é client-side, sob demanda, no Dashboard, sem persistência em `alerts`. Questão em aberto (§19) reescrita para refletir essa lacuna mais fundamental. Achado originado em `docs/ANALISE_VIABILIDADE_VISAO_DE_PRODUTO.md` (análise consultiva do par-senior); esta atualização registra apenas o fato/evidência — a decisão de reordenar roadmap/prioridades (§18/§21/§23) permanece pendente de avaliação do owner. |
+| 20/07/2026 | Formalizada a proposta **Kit de Defesa em Fiscalização** (§6, §13.7, §18, §19, §21, §23) como diferencial/roadmap — **proposta, ainda sem implementação no código, sem RN associada**. Registrada a decisão de priorizar esse kit como refinamento do investimento em relatório PDF, reordenando a fila em relação às notificações externas (e-mail/push), e a questão em aberto sobre validação jurídica do formato do kit com especialista do CRQ. |
+| 12/07/2026 | Versão inicial do documento (Draft). |
+
+---
+
+_Documento de Visão de Produto & Regras de Negócio — RTQuímico. Status: Draft (última atualização: 22/07/2026). Base para decisão de priorização e investimento; regras de negócio derivadas de evidência no código._

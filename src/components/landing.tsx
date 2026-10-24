@@ -1,5 +1,6 @@
 import { AlertTriangle, ArrowRight, Bell, BookOpen, CalendarClock, CheckCircle2, Clock3, FlaskConical, Gauge, Moon, ShieldCheck, Sparkles, Sun } from "lucide-react";
 import { useState, type FormEvent } from "react";
+import { HistoriaDoRT } from "./historia/HistoriaDoRT";
 import { Brand, Field } from "./primitives";
 import { isSupabaseConfigured } from "../lib/supabase";
 import type { AuthPayload } from "../types";
@@ -77,6 +78,7 @@ export function Landing({
           <div className="floating-card deadline"><Clock3 /><span><b>Prazo monitorado</b>18 dias restantes</span></div>
         </div>
       </section>
+      <HistoriaDoRT cta={<a className="button primary large" href="#auth">Começar teste grátis <ArrowRight size={18} /></a>} />
       <section className="benefits" id="beneficios">
         <div><AlertTriangle /><h3>Antecipe os prazos</h3><p>Alertas de 30 e 7 dias evitam surpresas com documentos vencidos.</p></div>
         <div><BookOpen /><h3>Documente sua atuação</h3><p>Construa um histórico técnico sólido com evidências e anexos.</p></div>

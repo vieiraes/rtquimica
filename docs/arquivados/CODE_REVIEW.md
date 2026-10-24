@@ -1,5 +1,7 @@
 # Code Review — RTQuímico
 
+> **Arquivado em 22/07/2026** pela curadoria de documentação: relatório datado (ponto-no-tempo, 12/07/2026); todos os itens acionáveis já estão refletidos e são acompanhados de fato em [../BOARD_CODE_REVIEW.md](../BOARD_CODE_REVIEW.md) (inclusive os ainda pendentes: RTQ-4, RTQ-9, RTQ-10, RTQ-11, RTQ-13, RTQ-14). Mantido aqui apenas como evidência histórica do diagnóstico original.
+>
 > Data: 2026-07-12 · Escopo: revisão estática do repositório (frontend React + Supabase)
 > Método: leitura do código, `tsc -b`, `eslint .`, diff de migrations/schema.
 
@@ -42,7 +44,7 @@ Diagnóstico geral: **protótipo sólido de UI, mas ainda não está production-
 
 ### 3.1 [Crítico] Build quebrado — prop `role` ausente no tipo de `Sidebar`
 
-> ✅ **RESOLVIDO** (RTQ-1 · [BOARD_CODE_REVIEW.md](BOARD_CODE_REVIEW.md)) — `role?: string;` adicionado às props do `Sidebar` em [src/App.tsx](src/App.tsx#L677); `npx tsc -b` passa.
+> ✅ **RESOLVIDO** (RTQ-1 · [BOARD_CODE_REVIEW.md](../BOARD_CODE_REVIEW.md)) — `role?: string;` adicionado às props do `Sidebar`; `npx tsc -b` passa. _(nota de curadoria 22/07/2026: `Sidebar` foi movido para [src/components/layout.tsx](src/components/layout.tsx#L66) no RTQ-7 — a linha original `src/App.tsx#L677` não existe mais)_
 
 `tsc -b` falha com 2 erros. O componente `Sidebar` desestrutura `role`, mas a interface de props não o declara.
 
@@ -62,7 +64,7 @@ Como o script de build é `tsc -b && vite build`, **o build de produção não c
 
 ### 3.2 [Crítico] Query ordena por coluna inexistente (`data_acao`)
 
-> ✅ **RESOLVIDO** (RTQ-2 · [BOARD_CODE_REVIEW.md](BOARD_CODE_REVIEW.md)) — a query passou a ordenar por `action_date` em [src/App.tsx](src/App.tsx#L243).
+> ✅ **RESOLVIDO** (RTQ-2 · [BOARD_CODE_REVIEW.md](../BOARD_CODE_REVIEW.md)) — a query passou a ordenar por `action_date` em [src/App.tsx](src/App.tsx#L82) _(nota de curadoria 22/07/2026: linha atualizada — o arquivo permanece o mesmo, mas foi reduzido no RTQ-7)_.
 
 No carregamento de dados do Supabase, as ações técnicas são ordenadas por `data_acao`:
 
@@ -78,7 +80,7 @@ Mas a coluna real na tabela `technical_actions` é `action_date` ([supabase/migr
 
 ### 4.1 [Alto] Categorias do `seed.sql` não batem com o mapa do app
 
-> ✅ **RESOLVIDO** (RTQ-3 · [BOARD_CODE_REVIEW.md](BOARD_CODE_REVIEW.md)) — o seed passou a usar slugs `visita`/`orientacao`/`laudo`, alinhados a `categoryToUi`. Ver [supabase/seed.sql](supabase/seed.sql#L54).
+> ✅ **RESOLVIDO** (RTQ-3 · [BOARD_CODE_REVIEW.md](../BOARD_CODE_REVIEW.md)) — o seed passou a usar slugs `visita`/`orientacao`/`laudo`, alinhados a `categoryToUi`. Ver [supabase/seed.sql](supabase/seed.sql#L54).
 
 `mapAction` traduz via `categoryToUi`, cujas chaves são slugs em minúsculas (`visita`, `orientacao`, `laudo`…) — [src/App.tsx](src/App.tsx#L109). Porém o `seed.sql` insere categorias como texto de exibição: `'Visita técnica'`, `'Orientação'`, `'Laudo'` — [supabase/seed.sql](supabase/seed.sql#L44).
 
@@ -88,7 +90,7 @@ Resultado: toda ação semeada cai no fallback e é exibida como **"Outro"**. O 
 
 ### 4.2 [Médio] Fallback de categoria inconsistente
 
-> ✅ **RESOLVIDO** (RTQ-5 · [BOARD_CODE_REVIEW.md](BOARD_CODE_REVIEW.md)) — o fallback de `categoryToDb` passou a ser `"outro"` em [src/App.tsx](src/App.tsx#L406).
+> ✅ **RESOLVIDO** (RTQ-5 · [BOARD_CODE_REVIEW.md](../BOARD_CODE_REVIEW.md)) — o fallback de `categoryToDb` passou a ser `"outro"` em [src/App.tsx](src/App.tsx#L245) _(nota de curadoria 22/07/2026: `categoryToDb` em si vive hoje em [src/lib/mappers.ts](src/lib/mappers.ts#L11), extraído no RTQ-7)_.
 
 Ao inserir uma ação, o fallback usa `"other"` em inglês — [src/App.tsx](src/App.tsx#L406) — enquanto todo o resto do domínio usa `"outro"`. Se cair no fallback, `mapAction` não encontra `categoryToUi["other"]` e exibe "Outro" por coincidência, mascarando o problema.
 
@@ -96,7 +98,7 @@ Ao inserir uma ação, o fallback usa `"other"` em inglês — [src/App.tsx](src
 
 ### 4.3 [Médio] `schema.sql` duplicado da migration
 
-> ✅ **RESOLVIDO** (RTQ-6 · [BOARD_CODE_REVIEW.md](BOARD_CODE_REVIEW.md)) — `supabase/schema.sql` foi **removido**; a migration [supabase/migrations/20260610085000_rtquimica_schema.sql](supabase/migrations/20260610085000_rtquimica_schema.sql) é a fonte única. `README.md` e `GEMINI.md` foram repontados para `supabase/migrations/`.
+> ✅ **RESOLVIDO** (RTQ-6 · [BOARD_CODE_REVIEW.md](../BOARD_CODE_REVIEW.md)) — `supabase/schema.sql` foi **removido**; a migration [supabase/migrations/20260610085000_rtquimica_schema.sql](supabase/migrations/20260610085000_rtquimica_schema.sql) é a fonte única. `README.md` e `GEMINI.md` foram repontados para `supabase/migrations/`.
 
 ~~[supabase/schema.sql](supabase/schema.sql)~~ (removido no RTQ-6) era **byte a byte idêntico** a [supabase/migrations/20260610085000_rtquimica_schema.sql](supabase/migrations/20260610085000_rtquimica_schema.sql). Manter dois arquivos com o mesmo DDL leva a drift: uma futura migration altera um, o outro fica desatualizado, e o README aponta para `schema.sql` como fonte de verdade.
 
@@ -131,9 +133,9 @@ Não foram encontrados indícios de SQL injection (uso de query builder parametr
 ## 6. Qualidade de código e manutenibilidade
 
 - **[Médio] Monólito de 1.154 linhas** em [src/App.tsx](src/App.tsx): dificulta revisão, reuso e testes. Extrair componentes para `src/components/` (Landing, Sidebar, Header, Dashboard, modais) e mapeadores/utilitários (`mapRt`, `mapAlert`, `mapAction`, `formatDate`) para `src/lib/`.
-  > ✅ **RESOLVIDO** (RTQ-7 · [BOARD_CODE_REVIEW.md](BOARD_CODE_REVIEW.md)) — `App.tsx` reduzido a ~365 linhas; componentes extraídos para [src/components/](src/components) (`primitives`/`modals`/`layout`/`landing`/`pages`) e utilitários para [src/lib/format.ts](src/lib/format.ts) e [src/lib/mappers.ts](src/lib/mappers.ts); payloads de tipo em [src/types.ts](src/types.ts).
+  > ✅ **RESOLVIDO** (RTQ-7 · [BOARD_CODE_REVIEW.md](../BOARD_CODE_REVIEW.md)) — `App.tsx` reduzido a ~365 linhas; componentes extraídos para [src/components/](src/components) (`primitives`/`modals`/`layout`/`landing`/`pages`) e utilitários para [src/lib/format.ts](src/lib/format.ts) e [src/lib/mappers.ts](src/lib/mappers.ts); payloads de tipo em [src/types.ts](src/types.ts).
 - **[Médio] Números e textos mágicos hardcoded na UI**: métricas fixas ("2 documentos a vencer", "78%", "18 dias", "214 dias restantes"), saudação fixa "Bom dia, Mariana" e data "Quarta-feira, 10 de junho" em [src/App.tsx](src/App.tsx#L52). Em modo conectado, esses valores não refletem os dados reais e induzem o usuário a erro.
-  > ✅ **RESOLVIDO** (RTQ-8 · [BOARD_CODE_REVIEW.md](BOARD_CODE_REVIEW.md)) — métricas do `Dashboard` agora derivadas de `rts`/`alerts` (documentos a vencer, conformidade média, vencidas, próximas renovações).
+  > ✅ **RESOLVIDO** (RTQ-8 · [BOARD_CODE_REVIEW.md](../BOARD_CODE_REVIEW.md)) — métricas do `Dashboard` agora derivadas de `rts`/`alerts` (documentos a vencer, conformidade média, vencidas, próximas renovações). _(nota de curadoria 22/07/2026: `Dashboard` vive hoje em [src/components/pages.tsx](src/components/pages.tsx#L8), extraído no RTQ-7)_
 - **[Médio] `progresso` derivado de forma arbitrária**: `mapRt` calcula `progresso: row.status === 'active' ? 80 : 35` ([src/App.tsx](src/App.tsx#L165)). O campo de conformidade exibido não vem da tabela `checklists`, que existe justamente para isso.
 - **[Baixo] Sem tratamento de `Promise` rejeitada em `refreshAlerts`/`markAlertsRead`** quando chamadas fora de um `try/catch` (ex.: `void onMarkRead()` no botão) — erros de rede seriam silenciados. Considerar um wrapper de erro central.
 - **[Baixo] Ausência de Error Boundary** e de estados de erro persistentes (só toasts efêmeros).

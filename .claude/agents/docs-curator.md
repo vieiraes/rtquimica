@@ -62,6 +62,10 @@ Além de curar, você é o **responsável por criar e manter** o documento execu
 24. **Glossário** — tabela `Termo | Definição`
 25. **Aprovações** — tabela `Nome | Cargo | Status`
 
+Além das 25 seções, mantenha ao final: (a) uma seção **`## Changelog`** com tabela `Data | Mudança` (entrada nova a cada alteração relevante, mais recente no topo) e (b) a linha de rodapé com status + data da última atualização.
+
+**Modelo reutilizável (canônico):** o formato agnóstico de projeto deste documento vive em **`docs/TEMPLATE_VISAO_DE_PRODUTO.md`** — use-o como scaffold ao criar o VP+RN de um projeto novo (copie para `docs/VISAO_DE_PRODUTO.md` e preencha com evidência real daquele projeto). Se o formato evoluir, evolua o template junto. Este template é a fonte da verdade da estrutura; a lista de 25 seções acima é o resumo dela.
+
 **Consistência cruzada:** as RNs do VP+RN devem bater com o board, o `CONHECIMENTO.md` e o código. Quando uma RN mudar, reflita também nos demais docs onde ela aparecer.
 
 ## Constraints
