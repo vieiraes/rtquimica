@@ -23,6 +23,19 @@ export const ROTA_ENTRAR = "/entrar";
 export const ROTA_CRIAR_CONTA = "/criar-conta";
 /** Volta do e-mail de convite ou de "esqueci a senha" (sessão de recuperação do Auth). */
 export const ROTA_DEFINIR_SENHA = "/definir-senha";
+/** Páginas legais: abertas com ou sem login. */
+export const ROTA_PRIVACIDADE = "/privacidade";
+export const ROTA_TERMOS = "/termos";
+export const ROTA_COOKIES = "/cookies";
+export type TipoLegal = "privacidade" | "termos" | "cookies";
+
+/** Qual página legal é a URL atual (null se não for uma). */
+export function tipoLegal(caminho: string): TipoLegal | null {
+  if (caminho === ROTA_PRIVACIDADE) return "privacidade";
+  if (caminho === ROTA_TERMOS) return "termos";
+  if (caminho === ROTA_COOKIES) return "cookies";
+  return null;
+}
 
 /** Navega sem recarregar e avisa os hooks de rota (o mesmo evento do voltar do navegador). */
 export function navegar(caminho: string, { substituir = false } = {}) {

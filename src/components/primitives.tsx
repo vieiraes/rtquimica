@@ -1,5 +1,17 @@
 import { EllipsisVertical, FlaskConical, Search, X } from "lucide-react";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type MouseEvent as ReactMouseEvent, type ReactNode } from "react";
+import { navegar } from "../lib/rotas";
+
+/** Link interno que troca de página sem recarregar (Ctrl/Cmd+clique abre em nova aba, como um link comum). */
+export function LinkInterno({ to, className, children }: { to: string; className?: string; children: ReactNode }) {
+  const ir = (event: ReactMouseEvent<HTMLAnchorElement>) => {
+    if (event.ctrlKey || event.metaKey || event.shiftKey || event.button !== 0) return;
+    event.preventDefault();
+    navegar(to);
+    window.scrollTo(0, 0);
+  };
+  return <a className={className} href={to} onClick={ir}>{children}</a>;
+}
 
 export function Brand() {
   return (

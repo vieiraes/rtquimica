@@ -5,13 +5,18 @@ import { isSupabaseConfigured, supabase } from "./lib/supabase";
 import { enviarFoto, removerFoto } from "./lib/foto-perfil";
 import { desde, formatDate } from "./lib/format";
 import { categoryToDb, mapAction, mapAlert, mapRt } from "./lib/mappers";
-import { navegar, paginaDaUrl, ROTA_CRIAR_CONTA, ROTA_DEFINIR_SENHA, ROTAS, useCaminho, usePagina } from "./lib/rotas";
+import { navegar, paginaDaUrl, ROTA_CRIAR_CONTA, ROTA_DEFINIR_SENHA, ROTAS, tipoLegal, useCaminho, usePagina } from "./lib/rotas";
 import { Brand } from "./components/primitives";
 import { ComunicacaoModal, NewActionModal, NewRtModal } from "./components/modals";
 import type { TipoComunicacao } from "./lib/comunicacao-crq";
 import { Pops } from "./components/pops";
 import { Header, PageHeading, Sidebar, VoltarAoTopo } from "./components/layout";
 import { Landing } from "./components/landing";
+import { AceiteTermos, PaginaLegal } from "./components/legal";
+import { AvisoCookies } from "./components/aviso-cookies";
+import { RodapeLegal } from "./components/site-footer";
+import { PrivacidadeDados } from "./components/privacidade-dados";
+import { VERSAO_TERMOS } from "./lib/legal";
 import { AuthPage, DefinirSenha } from "./components/auth-page";
 import { traduzirErroAuth } from "./lib/auth-erros";
 import { Alerts, Compliance, Dashboard, Profile, Responsibilities, TechnicalDiary, type PerfilEditavel } from "./components/pages";
@@ -36,6 +41,8 @@ interface Profile {
   crq_state: string | null;
   tax_regime: "pf" | "pj" | null;
   avatar_url: string | null;
+  terms_version: string | null;
+  terms_accepted_at: string | null;
 }
 
 function App() {
@@ -258,6 +265,8 @@ function App() {
               nome: payload.name,
               numero_crq: payload.crq,
               crq_estado: "SP",
+              // o formulário só envia com a caixa "Li e aceito" marcada; o banco grava a hora do servidor
+              aceite_termos: VERSAO_TERMOS,
             },
           },
         });
@@ -500,6 +509,12 @@ function App() {
     return <div className="boot-screen"><Brand /><span>Conectando...</span></div>;
   }
 
+  // Páginas legais: abertas com ou sem login
+  const legal = tipoLegal(caminho);
+  if (legal) {
+    return <><PaginaLegal tipo={legal} logado={loggedIn} /><AvisoCookies /></>;
+  }
+
   const aviso = toast && (
     <div className="toast" role="status">
       <CheckCircle2 size={19} />
@@ -514,6 +529,7 @@ function App() {
         {caminho === "/" || (paginaDaUrl(caminho) === null && !caminho.startsWith("/entrar") && caminho !== ROTA_CRIAR_CONTA)
           ? <Landing />
           : <AuthPage mode={caminho === ROTA_CRIAR_CONTA ? "signup" : "login"} onAuth={handleAuth} onGoogle={() => void entrarComGoogle()} loading={authLoading} onDemo={() => setAuthenticated(true)} onEsqueci={(email) => void esqueciSenha(email)} />}
+        <AvisoCookies />
         {aviso}
       </>
     );
@@ -608,9 +624,27 @@ function App() {
             />
           )}
           {page === "perfil" && quimico && <GoogleAgenda showToast={showToast} />}
+          {page === "perfil" && <PrivacidadeDados email={profile?.email ?? session?.user.email ?? ""} tenantId={profile?.tenant_id} titular={papel === "tenant_admin"} aceiteEm={profile?.terms_accepted_at ?? null} showToast={showToast} />}
+          <RodapeLegal />
         </main>
         <VoltarAoTopo />
       </div>
+      <AvisoCookies />
+      {supabase && profile && profile.terms_version !== VERSAO_TERMOS && (
+        <AceiteTermos
+          onSair={() => void handleLogout()}
+          onAceitar={async () => {
+            const { error } = await supabase!.rpc("aceitar_termos", { p_versao: VERSAO_TERMOS });
+            if (error) {
+              console.error(error);
+              showToast("Não consegui registrar o aceite. Tente de novo.");
+              return;
+            }
+            setProfile({ ...profile, terms_version: VERSAO_TERMOS, terms_accepted_at: new Date().toISOString() });
+            showToast("Obrigado. Aceite registrado.");
+          }}
+        />
+      )}
       {modal === "rt" && (
         <NewRtModal
           onClose={() => setModal(null)}

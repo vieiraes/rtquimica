@@ -2,7 +2,8 @@ import { ArrowLeft, BellRing, BookOpenCheck, ShieldCheck } from "lucide-react";
 import { useState, type FormEvent, type MouseEvent } from "react";
 import { Brand, Field } from "./primitives";
 import { isSupabaseConfigured } from "../lib/supabase";
-import { navegar, ROTA_CRIAR_CONTA, ROTA_ENTRAR } from "../lib/rotas";
+import { navegar, ROTA_CRIAR_CONTA, ROTA_ENTRAR, ROTA_PRIVACIDADE, ROTA_TERMOS } from "../lib/rotas";
+import { RodapeLegal } from "./site-footer";
 import type { AuthPayload } from "../types";
 
 const irPara = (caminho: string) => (event: MouseEvent<HTMLAnchorElement>) => {
@@ -63,6 +64,7 @@ export function AuthPage({
                 {signup ? "Criar conta com o Google" : "Entrar com o Google"}
               </button>
               <small className="auth-google-dica">{signup ? "Um clique: a conta usa o seu e-mail do Google, sem senha nova. O CRQ você informa depois, no painel." : "Use a mesma conta Google do cadastro."}</small>
+              {signup && <small className="auth-aceite-google">Ao continuar com o Google, você aceita os <a href={ROTA_TERMOS} target="_blank" rel="noopener">Termos de Uso</a> e a <a href={ROTA_PRIVACIDADE} target="_blank" rel="noopener">Política de Privacidade</a>.</small>}
               <div className="auth-ou"><span>ou com e-mail e senha</span></div>
             </>
           )}
@@ -75,6 +77,12 @@ export function AuthPage({
             )}
             <Field label="E-mail"><input type="email" value={email} onChange={(event) => setEmail(event.target.value)} autoComplete="email" required /></Field>
             <Field label="Senha"><input type="password" value={password} onChange={(event) => setPassword(event.target.value)} autoComplete={signup ? "new-password" : "current-password"} minLength={6} required /></Field>
+            {signup && (
+              <label className="auth-aceite">
+                <input type="checkbox" required />
+                <span>Li e aceito os <a href={ROTA_TERMOS} target="_blank" rel="noopener">Termos de Uso</a> e a <a href={ROTA_PRIVACIDADE} target="_blank" rel="noopener">Política de Privacidade</a>.</span>
+              </label>
+            )}
             <button className="button primary full large" disabled={loading}>{loading ? "Conectando..." : signup ? "Criar conta e entrar" : "Entrar"}</button>
           </form>
           {!signup && onEsqueci && isSupabaseConfigured && (
@@ -101,6 +109,7 @@ export function AuthPage({
           </ul>
         </aside>
       </main>
+      <RodapeLegal />
     </div>
   );
 }
@@ -134,6 +143,7 @@ export function DefinirSenha({ onDefinir }: { onDefinir: (senha: string) => Prom
           </form>
         </section>
       </main>
+      <RodapeLegal />
     </div>
   );
 }

@@ -1,17 +1,8 @@
 import { AlertTriangle, ArrowRight, BellRing, BookOpenCheck, CheckCircle2, ClipboardCheck, Clock3, FileText, FlaskConical, Radar, Search, Send, Wallet } from "lucide-react";
-import type { MouseEvent, ReactNode } from "react";
 import { HistoriaDoRT } from "./historia/HistoriaDoRT";
-import { Brand } from "./primitives";
-import { navegar, ROTA_CRIAR_CONTA, ROTA_ENTRAR } from "../lib/rotas";
-
-/** Link interno que troca de página sem recarregar. */
-function Link({ to, className, children }: { to: string; className?: string; children: ReactNode }) {
-  const ir = (event: MouseEvent<HTMLAnchorElement>) => {
-    event.preventDefault();
-    navegar(to);
-  };
-  return <a className={className} href={to} onClick={ir}>{children}</a>;
-}
+import { Brand, LinkInterno as Link } from "./primitives";
+import { SiteFooter } from "./site-footer";
+import { ROTA_CRIAR_CONTA, ROTA_ENTRAR } from "../lib/rotas";
 
 const RECURSOS = [
   { icon: Send, title: "Quadro do CRQ", text: "Comunicação de início e de baixa de cada RT num kanban. Só sai da coluna pendente com o protocolo." },
@@ -207,11 +198,7 @@ export function Landing() {
         <Link to={ROTA_CRIAR_CONTA} className="button light large">Criar minha conta <ArrowRight size={18} /></Link>
       </section>
 
-      <footer className="landing-footer">
-        <Brand />
-        <span>Gestão profissional de responsabilidade técnica.</span>
-        <span className="landing-footer-links"><Link to={ROTA_ENTRAR}>Entrar</Link> · © 2026 RTQuímico</span>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }

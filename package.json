@@ -13,6 +13,8 @@
     "paridade": "node scripts/paridade-supabase.mjs"
   },
   "dependencies": {
+    "@fontsource/dm-sans": "^5.3.0",
+    "@fontsource/manrope": "^5.3.0",
     "@supabase/supabase-js": "^2.57.4",
     "jspdf": "^4.2.1",
     "jspdf-autotable": "^5.0.9",
