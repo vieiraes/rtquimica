@@ -29,7 +29,7 @@ A sincronização roda logo depois de conectar, sempre que o químico salva uma 
 
 ## Local
 
-O portal infraestrutura-local sobe o mock do Google (`scripts/mock-google.mjs`, `localhost:5330`) e aponta as functions para ele. Assim dá para conectar sem uma conta real. `GET localhost:5330/__estado` mostra a agenda e os eventos criados.
+O local usa o Google de verdade, igual à produção: o portal passa `GOOGLE_CLIENT_ID/SECRET` do `.env.local` para as functions. O cliente OAuth precisa ter também os retornos `http://127.0.0.1:57141/functions/v1/google-retorno` (Agenda) e `http://127.0.0.1:57141/auth/v1/callback` (login). O mock antigo (`scripts/mock-google.mjs`) saiu do portal.
 
 ## Produção: o que falta configurar (uma vez)
 
@@ -52,7 +52,6 @@ O portal infraestrutura-local sobe o mock do Google (`scripts/mock-google.mjs`, 
 
 4. **Deploy das functions e da migration** `20261025000000_google_agenda.sql`. A `google-retorno` vai com `verify_jwt = false` (já está em `supabase/config.toml`).
 
-Para testar com o Google de verdade no local: crie também o URI `http://127.0.0.1:57141/functions/v1/google-retorno` no mesmo ID do cliente e troque, no cartão do portal, as variáveis `GOOGLE_*` do mock pelas reais.
 
 ## Login com Google (Entrar / Criar conta)
 
