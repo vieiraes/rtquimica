@@ -16,8 +16,6 @@ type Props = {
   onFalha: () => void;
 };
 
-const temaEscuro = () => document.documentElement.getAttribute("data-theme") === "dark";
-
 export default function Palco3D({ capitulos, reduzido, onFalha }: Props) {
   const host = useRef<HTMLDivElement>(null);
   const horaRef = useRef<HTMLSpanElement>(null);
@@ -87,7 +85,6 @@ export default function Palco3D({ capitulos, reduzido, onFalha }: Props) {
     let tAlvo = lerT();
     let tAtual = tAlvo;
     let ultimaRolagem = performance.now();
-    let escuro = temaEscuro();
     let visivel = false;
     let inicioSubida: number | null = null;
     let ultimoQuadro = 0;
@@ -115,7 +112,7 @@ export default function Palco3D({ capitulos, reduzido, onFalha }: Props) {
 
       if (inicioSubida === null) inicioSubida = agora;
       const subida = reduzido ? 1 : Math.min(1, (agora - inicioSubida) / 1800);
-      maquete.atualizar({ t, segundos, subida, animar: !reduzido, escuro });
+      maquete.atualizar({ t, segundos, subida, animar: !reduzido });
       renderer.setClearColor(maquete.fundo);
       try {
         renderer.render(maquete.cena, camera);
@@ -174,11 +171,6 @@ export default function Palco3D({ capitulos, reduzido, onFalha }: Props) {
     io.observe(el);
     const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(aoRedimensionar) : null;
     ro?.observe(el);
-    const tema = new MutationObserver(() => {
-      escuro = temaEscuro();
-      ligar();
-    });
-    tema.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
     window.addEventListener("scroll", aoRolar, { passive: true });
     window.addEventListener("resize", aoRedimensionar);
     document.addEventListener("visibilitychange", aoMudarAba);
@@ -189,7 +181,6 @@ export default function Palco3D({ capitulos, reduzido, onFalha }: Props) {
       cancelAnimationFrame(raf);
       io.disconnect();
       ro?.disconnect();
-      tema.disconnect();
       window.removeEventListener("scroll", aoRolar);
       window.removeEventListener("resize", aoRedimensionar);
       document.removeEventListener("visibilitychange", aoMudarAba);

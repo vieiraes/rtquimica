@@ -20,8 +20,6 @@ export type EstadoCena = {
   subida: number;
   /** false no movimento reduzido: sem loops (carros, pessoas, bolhas) e cada capítulo já no estado final. */
   animar: boolean;
-  /** Tema escuro da página (a noite do último capítulo independe dele). */
-  escuro: boolean;
 };
 
 export type Maquete = {
@@ -34,7 +32,6 @@ export type Maquete = {
 
 const COR = {
   dia: { ceu: "#eaf1f6", chao: "#e3e4dd", lote: "#dbe5d0" },
-  diaEscuro: { ceu: "#142234", chao: "#243241", lote: "#2d4038" },
   noite: { ceu: "#070c18", chao: "#131a27", lote: "#17231f" },
   predio: "#f4f1ea", laje: "#e1dcd1", muro: "#fbfaf6", rua: "#c6cad0", calcada: "#ebe8e1", patio: "#efece4",
   copa: "#a9c98f", copa2: "#8db87a", tronco: "#a68a6a", vidro: "#aabdcf", vidroNoite: "#1f2a3f", luz: "#ffd27a",
@@ -609,7 +606,6 @@ export function montarMaquete({ mapaSombra }: { mapaSombra: number }): Maquete {
     tampa: new Color(COR.tampa), verde: new Color(COR.verde), verdeClaro: new Color(COR.verdeClaro), ambar: new Color(COR.ambar),
     liquidoBase: new Color("#d7dde3"),
     dia: { ceu: new Color(COR.dia.ceu), chao: new Color(COR.dia.chao), lote: new Color(COR.dia.lote) },
-    diaEscuro: { ceu: new Color(COR.diaEscuro.ceu), chao: new Color(COR.diaEscuro.chao), lote: new Color(COR.diaEscuro.lote) },
     noite: { ceu: new Color(COR.noite.ceu), chao: new Color(COR.noite.chao), lote: new Color(COR.noite.lote) },
     sol: new Color("#fff4e0"), solTarde: new Color("#ffc58a"), lua: new Color("#8ea6d8"), branco: new Color("#ffffff"), ceuNoite: new Color("#9fb3dd"),
     lampadaDia: new Color(COR.lampada), lampadaNoite: new Color("#ffd98a"),
@@ -618,14 +614,14 @@ export function montarMaquete({ mapaSombra }: { mapaSombra: number }): Maquete {
     const { t, segundos, animar } = e;
     const minutos = minutosEm(t);
     const noite = noiteEm(minutos);
-    const base = e.escuro ? cores.diaEscuro : cores.dia;
+    const base = cores.dia;
 
     // Céu, chão e luz conforme a hora
     fundo.copy(base.ceu).lerp(cores.noite.ceu, noite);
     (cena.fog as Fog).color.copy(fundo);
     matChao.color.copy(base.chao).lerp(cores.noite.chao, noite);
     matLote.color.copy(base.lote).lerp(cores.noite.lote, noite);
-    hemi.intensity = lerp(e.escuro ? 1.1 : 1.5, 0.35, noite);
+    hemi.intensity = lerp(1.5, 0.35, noite);
     hemi.color.copy(cores.branco).lerp(cores.ceuNoite, noite);
     sol.intensity = lerp(2.3, 0.35, noite);
     sol.color.copy(minutos > 16 * 60 ? cores.solTarde : cores.sol).lerp(cores.lua, noite);

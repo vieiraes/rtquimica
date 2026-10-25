@@ -48,14 +48,17 @@ export function HistoriaDoRT({ cta }: { cta: ReactNode }) {
 
       <div className={comPalco ? "historia-corpo com-palco" : "historia-corpo"}>
         {comPalco && (
-          <div className="palco" aria-hidden="true">
-            {perto && (
-              <Falha3D onError={falhar}>
-                <Suspense fallback={null}>
-                  <Palco3D capitulos={lista} reduzido={reduzido} onFalha={falhar} />
-                </Suspense>
-              </Falha3D>
-            )}
+          // O trilho tem a altura da lista: o palco preso (sticky) solta exatamente no fim da história
+          <div className="palco-trilho" aria-hidden="true">
+            <div className="palco">
+              {perto && (
+                <Falha3D onError={falhar}>
+                  <Suspense fallback={null}>
+                    <Palco3D capitulos={lista} reduzido={reduzido} onFalha={falhar} />
+                  </Suspense>
+                </Falha3D>
+              )}
+            </div>
           </div>
         )}
         <ol ref={lista} className={comPalco ? "capitulos" : "capitulos-grade"}>

@@ -5,3 +5,4 @@ dist
 *.tsbuildinfo
 tmp/
 .firebase/
+supabase/.temp/

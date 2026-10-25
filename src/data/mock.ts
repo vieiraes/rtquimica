@@ -1,4 +1,7 @@
 import type { Alert, RT, TechnicalAction } from "../types";
+import type { UsuarioPlataforma } from "../components/gestao";
+import type { Lancamento } from "../components/financeiro";
+import type { ItemRadar } from "../components/radar";
 
 export const initialRts: RT[] = [
   { id: 1, empresa: "BioLab Análises", cnpj: "12.345.678/0001-90", documento: "TRT", numero: "TRT-2026-0182", inicio: "10/01/2026", vigencia: "10/01/2027", status: "Ativa", regional: "CRQ-IV", progresso: 92 },
@@ -37,3 +40,39 @@ export const popTemplates = [
   { title: "Operação de sistema de efluentes", segment: "Efluentes", description: "Procedimentos operacionais e parâmetros críticos da estação.", time: "15 min" },
   { title: "Resposta a derramamentos", segment: "Segurança", description: "Ações imediatas, contenção, limpeza e documentação do incidente.", time: "7 min" },
 ];
+
+// Modo demonstração: usuários de exemplo da tela Plataforma (superadmin) e Equipe (tenant "demo")
+const escritorioDemo = { name: "Assessoria Mariana Vieira", plan: "pro" };
+export const usuariosDemo: UsuarioPlataforma[] = [
+  { id: "u1", name: "Mariana Vieira", email: "mariana@exemplo.com.br", role: "tenant_admin", crq_number: "04289123", crq_state: "SP", created_at: "2026-01-10T12:00:00Z", tenant_id: "demo", tenants: escritorioDemo },
+  { id: "u2", name: "Carla Souza", email: "carla@exemplo.com.br", role: "tenant_member", crq_number: "04311876", crq_state: "SP", created_at: "2026-02-03T12:00:00Z", tenant_id: "demo", tenants: escritorioDemo },
+  { id: "u4", name: "João Química", email: "joao@exemplo.com.br", role: "tenant_admin", crq_number: "05120034", crq_state: "RJ", created_at: "2026-04-22T12:00:00Z", tenant_id: "demo2", tenants: { name: "João Química Ltda", plan: "basic" } },
+];
+
+// Modo demonstração: financeiro de quem recebe no CPF, com datas relativas a hoje
+const diaRelativo = (dias: number) => { const d = new Date(); d.setDate(d.getDate() + dias); return d.toLocaleDateString("sv-SE"); };
+const base = { rtId: null, payerDocument: null, category: null, deductible: false, retido: 0, comprovante: null };
+export const lancamentosDemo: Lancamento[] = [
+  { ...base, id: "f1", kind: "receita", payerType: "pj", payerName: "BioLab Análises", payerDocument: "12.345.678/0001-90", description: "Honorários de RT", valor: 1800, retido: 27, vencimento: diaRelativo(-12), pagoEm: diaRelativo(-12) },
+  { ...base, id: "f2", kind: "receita", payerType: "pj", payerName: "Aqua Pura Ambiental", payerDocument: "28.491.730/0001-44", description: "Honorários de RT", valor: 1500, vencimento: diaRelativo(-6), pagoEm: null },
+  { ...base, id: "f3", kind: "receita", payerType: "pf", payerName: "Sítio Boa Água (José Pereira)", description: "Laudo de potabilidade do poço", valor: 2400, vencimento: diaRelativo(-3), pagoEm: diaRelativo(-3) },
+  { ...base, id: "f4", kind: "receita", payerType: "pj", payerName: "Verde Ciclo Efluentes", payerDocument: "09.441.875/0001-31", description: "Honorários de RT", valor: 2200, vencimento: diaRelativo(9), pagoEm: null },
+  { ...base, id: "f5", kind: "despesa", payerType: null, payerName: null, category: "anuidade_crq", deductible: true, description: "Anuidade CRQ-IV", valor: 780, vencimento: diaRelativo(-20), pagoEm: diaRelativo(-20) },
+  { ...base, id: "f6", kind: "despesa", payerType: null, payerName: null, category: "curso", deductible: true, description: "Curso de atualização em efluentes", valor: 450, vencimento: diaRelativo(-4), pagoEm: diaRelativo(-4) },
+  { ...base, id: "f7", kind: "despesa", payerType: null, payerName: null, category: "deslocamento", deductible: false, description: "Combustível das visitas", valor: 320, vencimento: diaRelativo(-2), pagoEm: diaRelativo(-2) },
+];
+
+// Modo demonstração: radar regulatório de exemplo (títulos ilustrativos, links para as páginas dos órgãos)
+const horasAtras = (h: number) => new Date(Date.now() - h * 3_600_000).toISOString();
+export const radarDemo: { itens: ItemRadar[]; fontes: Array<{ id: string; name: string; last_error: string | null }> } = {
+  fontes: [
+    { id: "cfq-noticias", name: "CFQ · notícias", last_error: null },
+    { id: "crqsp-noticias", name: "CRQ-IV (SP) · notícias", last_error: null },
+    { id: "conama-pauta", name: "CONAMA em pauta", last_error: null },
+  ],
+  itens: [
+    { id: "r1", source_id: "cfq-noticias", title: "Exemplo: plenário do CFQ aprova nova resolução normativa", link: "https://cfq.org.br/noticia/", summary: "Item de demonstração. Com a conta conectada, aparecem as notícias reais do CFQ.", published_at: horasAtras(5) },
+    { id: "r2", source_id: "crqsp-noticias", title: "Exemplo: CRQ-IV divulga calendário de fiscalização", link: "https://crqsp.org.br/category/noticias/", summary: "Item de demonstração.", published_at: horasAtras(30) },
+    { id: "r3", source_id: "conama-pauta", title: "Exemplo: CONAMA publica pauta da próxima reunião plenária", link: "https://conama.mma.gov.br/conama-em-pauta", summary: null, published_at: horasAtras(80) },
+  ],
+};

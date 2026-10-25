@@ -1,45 +1,65 @@
 import {
   Bell,
   BookOpen,
-  Building2,
-  ChevronDown,
   ClipboardCheck,
   FileText,
   LayoutDashboard,
   LogOut,
   Menu,
-  Moon,
   Plus,
+  Radar,
   Search,
   Settings,
   ShieldCheck,
-  Sun,
   UsersRound,
+  Wallet,
   X,
 } from "lucide-react";
 import { Brand } from "./primitives";
+import { ehQuimico, paginasDoPapel, type Papel } from "../lib/papeis";
 import type { Page } from "../types";
 
-const nav = [
-  { id: "dashboard" as Page, label: "Visão geral", icon: LayoutDashboard },
-  { id: "rts" as Page, label: "Responsabilidades", icon: ShieldCheck },
-  { id: "alertas" as Page, label: "Alertas", icon: Bell, badge: 3 },
-  { id: "acoes" as Page, label: "Diário técnico", icon: BookOpen },
-  { id: "checklist" as Page, label: "Conformidade", icon: ClipboardCheck },
-  { id: "pops" as Page, label: "Biblioteca de POPs", icon: FileText },
-  { id: "empresa" as Page, label: "Portal da empresa", icon: Building2 },
+const nav: Array<{ id: Page; label: string; icon: typeof Bell }> = [
+  { id: "plataforma", label: "Usuários da plataforma", icon: UsersRound },
+  { id: "dashboard", label: "Visão geral", icon: LayoutDashboard },
+  { id: "rts", label: "Responsabilidades", icon: ShieldCheck },
+  { id: "alertas", label: "Alertas", icon: Bell },
+  { id: "radar", label: "Radar regulatório", icon: Radar },
+  { id: "acoes", label: "Diário técnico", icon: BookOpen },
+  { id: "checklist", label: "Conformidade", icon: ClipboardCheck },
+  { id: "pops", label: "Biblioteca de POPs", icon: FileText },
+  { id: "financeiro", label: "Financeiro", icon: Wallet },
+];
+const navConta: Array<{ id: Page; label: string; icon: typeof Bell }> = [
+  { id: "equipe", label: "Equipe", icon: UsersRound },
+  { id: "perfil", label: "Configurações", icon: Settings },
 ];
 
+const GRUPO: Record<Papel, string> = { superadmin: "PLATAFORMA", tenant_admin: "GESTÃO", tenant_member: "GESTÃO", tenant_external_client: "CONTA" };
+
 const pageTitles: Record<Page, { eyebrow: string; title: string; description: string }> = {
-  dashboard: { eyebrow: "Quarta-feira, 10 de junho", title: "Bom dia, Mariana", description: "Aqui está o panorama das suas responsabilidades técnicas." },
+  dashboard: { eyebrow: "", title: "", description: "Aqui está o panorama das suas responsabilidades técnicas." },
   rts: { eyebrow: "Gestão técnica", title: "Responsabilidades técnicas", description: "Acompanhe vínculos, documentos, vigências e conformidade." },
   alertas: { eyebrow: "Central de avisos", title: "Alertas e notificações", description: "Priorize prazos críticos e mantenha as empresas regulares." },
   acoes: { eyebrow: "Proteção profissional", title: "Diário técnico", description: "Documente orientações, visitas, análises e evidências." },
   checklist: { eyebrow: "CRQ-IV • São Paulo", title: "Checklist de conformidade", description: "Revise as exigências e acompanhe a evolução de cada empresa." },
   pops: { eyebrow: "Modelos editáveis", title: "Biblioteca de POPs", description: "Parta de procedimentos estruturados e adapte à sua operação." },
-  empresa: { eyebrow: "Visão compartilhada", title: "Portal da empresa", description: "Uma experiência simples para a empresa contratante." },
-  admin: { eyebrow: "Super administração", title: "Painel administrativo", description: "Métricas gerais, usuários, receita e atividade do sistema." },
-  perfil: { eyebrow: "Minha conta", title: "Perfil e configurações", description: "Dados profissionais, preferências e assinatura." },
+  radar: { eyebrow: "Sempre informado", title: "Radar regulatório", description: "Novidades do CFQ, do CRQ, do CONAMA, do MMA e do Ibama num lugar só." },
+  financeiro: { eyebrow: "Suas finanças", title: "Financeiro", description: "Honorários, despesas dedutíveis, carnê-leão e o resumo para o imposto de renda." },
+  plataforma: { eyebrow: "Gestão do produto", title: "Usuários da plataforma", description: "Quem usa o RTQuímico: químicos e escritórios." },
+  equipe: { eyebrow: "Seu escritório", title: "Equipe", description: "Pessoas com acesso ao workspace do escritório." },
+  perfil: { eyebrow: "Minha conta", title: "Perfil e configurações", description: "Seus dados e preferências." },
+};
+
+function saudacao(nome: string) {
+  const hora = new Date().getHours();
+  const periodo = hora < 12 ? "Bom dia" : hora < 18 ? "Boa tarde" : "Boa noite";
+  return `${periodo}, ${nome.split(" ")[0]}`;
+}
+
+const hoje = () => {
+  const texto = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" });
+  return texto.charAt(0).toUpperCase() + texto.slice(1);
 };
 
 export function Sidebar({
@@ -49,10 +69,13 @@ export function Sidebar({
   onClose,
   onLogout,
   name,
-  crq,
+  subtitle,
   initials,
   activeCount,
-  role,
+  unread,
+  atrasados,
+  radarNovas,
+  papel,
 }: {
   page: Page;
   open: boolean;
@@ -60,42 +83,46 @@ export function Sidebar({
   onClose: () => void;
   onLogout: () => void;
   name: string;
-  crq: string;
+  subtitle: string;
   initials: string;
   activeCount: number;
-  role?: string;
+  unread: number;
+  atrasados: number;
+  radarNovas: number;
+  papel: Papel | null;
 }) {
+  const permitidas = paginasDoPapel(papel);
+  const item = ({ id, label, icon: Icon }: (typeof nav)[number]) => (
+    <button key={id} className={page === id ? "active" : ""} onClick={() => onNavigate(id)}>
+      <Icon size={19} />
+      <span>{label}</span>
+      {id === "alertas" && unread > 0 && <b className="nav-badge">{unread}</b>}
+      {id === "radar" && radarNovas > 0 && <b className="nav-badge info" title="Novidades não lidas">{radarNovas > 99 ? "99+" : radarNovas}</b>}
+      {id === "financeiro" && atrasados > 0 && <b className="nav-badge" title="Honorários em atraso">{atrasados}</b>}
+    </button>
+  );
   return (
     <>
       {open && <button className="sidebar-backdrop" onClick={onClose} aria-label="Fechar menu" />}
       <aside className={`sidebar ${open ? "open" : ""}`}>
-        <div className="sidebar-brand"><Brand /><button className="mobile-close" onClick={onClose}><X size={20} /></button></div>
+        <div className="sidebar-brand"><Brand /><button className="mobile-close" onClick={onClose} aria-label="Fechar menu"><X size={20} /></button></div>
         <div className="workspace-switch">
           <span className="avatar small">{initials}</span>
-          <span><b>{name}</b><small>CRQ-IV {crq}</small></span>
-          <ChevronDown size={16} />
+          <span><b>{name}</b><small>{subtitle}</small></span>
         </div>
         <nav className="nav-list">
-          <small>GESTÃO</small>
-          {nav.map((item) => {
-            const Icon = item.icon;
-            return (
-              <button key={item.id} className={page === item.id ? "active" : ""} onClick={() => onNavigate(item.id)}>
-                <Icon size={19} />
-                <span>{item.label}</span>
-                {item.badge && <b className="nav-badge">{item.badge}</b>}
-              </button>
-            );
-          })}
-          <small>SISTEMA</small>
-          { (role === "superadmin" || role === "tenant_admin") && <button className={page === "admin" ? "active" : ""} onClick={() => onNavigate("admin")}><UsersRound size={19} /><span>Administração</span></button> }
-          <button className={page === "perfil" ? "active" : ""} onClick={() => onNavigate("perfil")}><Settings size={19} /><span>Configurações</span></button>
+          <small>{GRUPO[papel ?? "tenant_member"]}</small>
+          {nav.filter((n) => permitidas.includes(n.id)).map(item)}
+          <small>CONTA</small>
+          {navConta.filter((n) => permitidas.includes(n.id)).map(item)}
         </nav>
-        <div className="sidebar-limit">
-          <div><span>RTs em uso</span><b>{activeCount} de 6</b></div>
-          <div className="progress"><i style={{ width: `${Math.min(100, (activeCount / 6) * 100)}%` }} /></div>
-          <small>Você ainda pode cadastrar {Math.max(0, 6 - activeCount)} empresas.</small>
-        </div>
+        {ehQuimico(papel) && (
+          <div className="sidebar-limit">
+            <div><span>RTs em uso</span><b>{activeCount} de 6</b></div>
+            <div className="progress"><i style={{ width: `${Math.min(100, (activeCount / 6) * 100)}%` }} /></div>
+            <small>Você ainda pode cadastrar {Math.max(0, 6 - activeCount)} empresas.</small>
+          </div>
+        )}
         <button className="logout" onClick={onLogout}><LogOut size={18} /> Sair da conta</button>
       </aside>
     </>
@@ -105,37 +132,39 @@ export function Sidebar({
 export function Header({
   onMenu,
   onProfile,
-  dark,
-  setDark,
   unread,
   onAlerts,
   name,
+  subtitle,
   initials,
+  papel,
 }: {
   onMenu: () => void;
   onProfile: () => void;
-  dark: boolean;
-  setDark: (value: boolean) => void;
   unread: number;
   onAlerts: () => void;
   name: string;
+  subtitle: string;
   initials: string;
+  papel: Papel | null;
 }) {
+  const quimico = ehQuimico(papel);
   return (
     <header className="topbar">
       <button className="icon-button menu-button" onClick={onMenu} aria-label="Abrir menu"><Menu size={21} /></button>
-      <div className="global-search"><Search size={18} /><input placeholder="Buscar empresa, documento ou ação..." /><kbd>⌘ K</kbd></div>
+      {quimico ? <div className="global-search"><Search size={18} /><input placeholder="Buscar empresa, documento ou ação..." aria-label="Buscar" /></div> : <span />}
       <div className="topbar-actions">
-        <button className="icon-button" onClick={() => setDark(!dark)} aria-label="Alternar tema">{dark ? <Sun size={19} /> : <Moon size={19} />}</button>
-        <button className="icon-button notification-button" onClick={onAlerts} aria-label="Ver alertas"><Bell size={19} />{unread > 0 && <i />}</button>
-        <button className="profile-button" onClick={onProfile}><span className="avatar">{initials}</span><span><b>{name}</b><small>Plano Profissional</small></span><ChevronDown size={16} /></button>
+        {quimico && <button className="icon-button notification-button" onClick={onAlerts} aria-label="Ver alertas"><Bell size={19} />{unread > 0 && <i />}</button>}
+        <button className="profile-button" onClick={onProfile}><span className="avatar">{initials}</span><span><b>{name}</b><small>{subtitle}</small></span></button>
       </div>
     </header>
   );
 }
 
-export function PageHeading({ page, onPrimary }: { page: Page; onPrimary: () => void }) {
-  const meta = pageTitles[page];
+export function PageHeading({ page, name, onPrimary }: { page: Page; name: string; onPrimary: () => void }) {
+  const meta = page === "dashboard"
+    ? { ...pageTitles.dashboard, eyebrow: hoje(), title: saudacao(name) }
+    : pageTitles[page];
   const hasPrimary = page === "dashboard" || page === "rts" || page === "acoes";
   return (
     <div className="page-heading">

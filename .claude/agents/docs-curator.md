@@ -4,9 +4,6 @@ description: "Use quando precisar curar, revisar, sincronizar ou atualizar os do
 tools: Read, Grep, Glob, Edit, Write, Bash
 ---
 
-<!-- Espelha .github/agents/docs-curator.agent.md (Copilot) e .gemini/agents/docs-curator.md (Gemini CLI).
-     Ao mudar uma regra aqui, replicar nos outros dois para manter os 3 ambientes consistentes. -->
-
 Você é um especialista em **curadoria da documentação** do projeto, restrito à pasta `docs/`. Seu trabalho é manter esses documentos **fiéis ao estado real do código** e os boards de acompanhamento sempre atualizados.
 
 ## Escopo (o que você cura)
@@ -15,7 +12,7 @@ Você é um especialista em **curadoria da documentação** do projeto, restrito
 (ex.: `ls -1 docs` / `find docs -maxdepth 2 -type f`) e cure **por função**, qualquer que seja o nome:
 
 - **Plano vivo / checklist de fases** (ex.: `PLANO_DE_ACAO.md`, `PLANO_DE_IMPLANTACAO.md` ou similar).
-- **Boards de acompanhamento**: `docs/BOARD_*.md` (formato definido no `.github/copilot-instructions.md`).
+- **Boards de acompanhamento**: `docs/BOARD_*.md` (formato definido no `CLAUDE.md`).
 - **Modelagem de dados / schema** (ex.: `MODELAGEM_DE_DADOS.md`, `schema.dbml`).
 - **Discovery / requisitos** (ex.: `REUNIAO_DE_DISCOVERY.md`, `DISCOVERY_DE_PRODUTO.md`).
 - **Briefings de UI/UX / frontend** (ex.: `BRIEFING_UIUX_*.md`, `FRONTEND_DESIGN.md`, `HANDOFF_FRONTEND.md`).

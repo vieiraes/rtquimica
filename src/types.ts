@@ -5,8 +5,10 @@ export type Page =
   | "acoes"
   | "checklist"
   | "pops"
-  | "empresa"
-  | "admin"
+  | "financeiro"
+  | "radar"
+  | "plataforma"
+  | "equipe"
   | "perfil";
 
 export type RtStatus = "Ativa" | "Pendente" | "Vencida" | "Cancelada";
@@ -21,7 +23,14 @@ export interface RT {
   vigencia: string;
   status: RtStatus;
   regional: string;
-  progresso: number;
+  /** % do checklist de conformidade salvo; null = ainda sem revisão */
+  progresso: number | null;
+  /** Da consulta de CNPJ (quando houve) */
+  razaoSocial?: string | null;
+  cidade?: string | null;
+  uf?: string | null;
+  /** AAAA-MM-DD, para formulários */
+  inicioIso?: string;
 }
 
 export interface Alert {
@@ -41,6 +50,10 @@ export interface TechnicalAction {
   description: string;
   date: string;
   evidence: number;
+  /** ISO da data da ação (filtros e relatório) */
+  dataIso?: string;
+  /** Arquivos de evidência no Storage (bucket documentos, pasta do escritório) */
+  anexos?: Array<{ path: string; name: string }>;
 }
 
 export interface RtInsertPayload {
@@ -52,6 +65,8 @@ export interface RtInsertPayload {
   vigencia: string;
   regional: string;
   observacoes: string;
+  /** Preenchidos pela consulta de CNPJ, quando ela responde */
+  empresaDados?: { razaoSocial: string; cnae: string | null; cnaeDescricao: string | null; municipio: string | null; uf: string | null };
 }
 
 export interface ActionInsertPayload {
@@ -59,6 +74,7 @@ export interface ActionInsertPayload {
   category: string;
   company: string;
   description: string;
+  arquivos?: File[];
 }
 
 export interface AuthPayload {

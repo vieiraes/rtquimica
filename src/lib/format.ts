@@ -27,3 +27,6 @@ export function daysUntil(value: string): number | null {
   today.setHours(0, 0, 0, 0);
   return Math.round((target.getTime() - today.getTime()) / 86400000);
 }
+
+/** Data ISO de `dias` atrás (filtros "últimos N dias"). */
+export const desde = (dias: number) => new Date(Date.now() - dias * 86_400_000).toISOString();

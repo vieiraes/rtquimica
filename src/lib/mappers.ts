@@ -44,7 +44,11 @@ export function mapRt(row: Record<string, unknown>): RT {
     vigencia: formatDate(row.end_date as string),
     status: statusToUi[row.status as keyof typeof statusToUi] ?? "Pendente",
     regional: row.crq_region as string,
-    progresso: row.status === "active" ? 80 : 35,
+    progresso: null,
+    razaoSocial: (row.company_legal_name as string | null) ?? null,
+    cidade: (row.company_city as string | null) ?? null,
+    uf: (row.company_state as string | null) ?? null,
+    inicioIso: row.start_date as string,
   };
 }
 
@@ -69,5 +73,9 @@ export function mapAction(row: Record<string, unknown>): TechnicalAction {
     description: row.description as string,
     date: formatDateTime(row.action_date as string),
     evidence: Array.isArray(row.attachments) ? row.attachments.length : 0,
+    dataIso: row.action_date as string,
+    anexos: Array.isArray(row.attachments)
+      ? (row.attachments as Array<{ path?: unknown; name?: unknown }>).filter((a) => typeof a?.path === "string").map((a) => ({ path: a.path as string, name: typeof a.name === "string" ? a.name : (a.path as string).split("/").pop()! }))
+      : [],
   };
 }

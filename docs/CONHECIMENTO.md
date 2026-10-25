@@ -11,7 +11,7 @@ A plataforma opera em arquitetura **Multi-tenant**, o que significa que atende t
 - **Frontend**:
   - React 19 (Tipado com TypeScript).
   - Vite como empacotador (bundler).
-  - CSS Vanilla (`styles.css`), suportando Dark/Light mode com `data-theme`.
+  - CSS Vanilla (`styles.css`), só tema claro.
   - Ícones da biblioteca `lucide-react`.
 - **Backend / Infraestrutura**:
   - **Supabase** (Auth + Postgres com RLS + Storage). **Decisão (12/07/2026):** abandonar o modo **local** (Supabase CLI) como ~~fonte principal de desenvolvimento~~ e adotar o **Supabase remoto (Cloud)** como ambiente de referência — ver [BOARD_CODE_REVIEW.md](BOARD_CODE_REVIEW.md) RTQ-4. **Pendente:** o projeto remoto ainda não foi criado/linkado (sem `supabase link`/`db push` executados; `supabase/config.toml` só define o projeto local); até lá, a validação ponta a ponta segue bloqueada.
@@ -24,7 +24,7 @@ A plataforma opera em arquitetura **Multi-tenant**, o que significa que atende t
 O sistema utiliza um design de banco de dados voltado para isolamento por `tenant_id`. Cada cliente ou empresa de assessoria possui um `tenant`, e os `profiles` dos usuários são atrelados a esse workspace.
 
 ### Papéis do Sistema (`app_role`):
-- `superadmin`: Dono do sistema SaaS. Tem acesso global a todos os Tenants, gere faturamento e pode visualizar qualquer dado na plataforma.
+- `superadmin`: Gestão do produto RTQuímico (não é químico). Na tela vê só os usuários e escritórios da plataforma (`/plataforma`), com contagem de RTs, sem abrir o conteúdo delas. O RLS ainda lhe dá leitura global (para suporte).
 - `tenant_admin`: O contratante principal do software. Tem permissão para visualizar todas as informações do próprio workspace e gerenciar assinaturas ou convites de membros.
 - `tenant_member`: O químico atuante. Pode registrar informações e ações no workspace, mas sem privilégios administrativos dentro do Tenant.
 - `tenant_external_client`: A empresa que recebe a RT (cliente final). Terá acesso de apenas-leitura a um portal dedicado para ver relatórios.
@@ -32,7 +32,7 @@ O sistema utiliza um design de banco de dados voltado para isolamento por `tenan
 ### Estrutura de Código Central
 Após a modularização (RTQ-7), o `App.tsx` deixou de ser um monólito (~1.154 → ~365 linhas) e passou a orquestrar componentes/utilitários extraídos:
 - `src/main.tsx`: Ponto de inicialização.
-- `src/App.tsx`: Centralizador da aplicação (rotas internas por estado, estados globais e as consultas Supabase JS adaptadas ao `tenant_id`, com painéis condicionais por papel — ex.: a aba "Administração" é protegida para `superadmin`/`tenant_admin`).
+- `src/App.tsx`: Centralizador da aplicação (rotas internas por estado, estados globais e as consultas Supabase JS adaptadas ao `tenant_id`, com painéis condicionais por papel definidos em `src/lib/papeis.ts` — ex.: `/plataforma` só para `superadmin`, `/equipe` só para `tenant_admin`).
 - `src/types.ts`: Tipagens dos dados mapeados e payloads de formulário (ex.: `technical_responsibilities` mapeadas para as interfaces do Frontend).
 - `src/lib/format.ts` e `src/lib/mappers.ts`: utilitários de formatação e mapeadores DB↔UI (`mapRt`, `mapAlert`, `mapAction`, categorias).
 - `src/lib/supabase.ts`: cliente Supabase e flag `isSupabaseConfigured` (alterna entre mock e backend real).
