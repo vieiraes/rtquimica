@@ -796,3 +796,10 @@ textarea.editor { font-family: inherit; font-size: 16px; line-height: 1.6; }
 }
 
 @media (max-width: 600px) { .landing-actions .button { white-space: nowrap; } .landing-actions .button.primary svg { display: none; } }
+
+/* Login com Google */
+.botao-google { gap: 10px; justify-content: center; }
+.auth-google-dica { display: block; margin: 8px 0 0; color: var(--muted); font-size: 14px; line-height: 1.45; text-align: center; }
+.auth-ou { margin: 20px 0 6px; display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 14px; }
+.auth-ou::before, .auth-ou::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+.faixa-crq { background: var(--amber-soft) !important; color: #7a3d06 !important; border-color: #f2c48d !important; }

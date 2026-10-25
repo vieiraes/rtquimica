@@ -60,6 +60,7 @@
   - **Tela:** formato de caderno, com seções coloridas e folhas empilhadas que se abrem.
   - **Aviso obrigatório:** os modelos são de referência e não são documentos oficiais; a tela diz isso.
 - **Modais:** `Modal` (em `primitives.tsx`) envolve o conteúdo em `.modal-corpo`. Só o miolo rola, o `footer` gruda embaixo e os cantos ficam sempre arredondados. Não ponha `overflow` no `.modal`.
+- **Login com Google:** botão em `/entrar` e `/criar-conta` (OAuth do Supabase Auth, mesmo cliente do Google Agenda). A conta nasce pelo `handle_new_user` com o nome e a foto do Google. Sem CRQ, o painel mostra uma faixa que leva a Perfil e configurações. Detalhes e o URI de callback obrigatório estão em `docs/GOOGLE_AGENDA.md`.
 - **Foto do perfil:** bucket público `fotos` (`<user_id>/foto.jpg`); o navegador reduz a imagem para 320×320 JPEG (`src/lib/foto-perfil.ts`) e grava o endereço em `profiles.avatar_url`.
 - **Produto explícito:** telas e documentos dizem onde clicar e o que preencher (nome exato do botão ou ficha); em assunto de órgão oficial, passo a passo e tabela campo → valor.
 - **Edge Functions no local:** função nova só é servida depois de reiniciar o serviço "Supabase · RTQuímico" no portal (a lista de funções é montada quando ele liga).

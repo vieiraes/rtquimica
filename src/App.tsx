@@ -226,6 +226,17 @@ function App() {
     else if (paginaDaUrl(window.location.pathname) === null) substituir(page);
   }, [loggedIn, page, perfilCarregado, papel, substituir, caminho, bloqueado]);
 
+  // Entrar ou criar conta com o Google: o Supabase Auth faz o OAuth e volta para o painel já logado.
+  // Na primeira vez a conta e o escritório nascem pelo trigger handle_new_user (nome e foto do Google).
+  const entrarComGoogle = async () => {
+    if (!supabase) return;
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: `${window.location.origin}${ROTAS.dashboard}`, queryParams: { prompt: "select_account" } },
+    });
+    if (error) showToast(traduzirErroAuth(error.message));
+  };
+
   const handleAuth = async (payload: AuthPayload) => {
     if (!supabase) {
       setAuthenticated(true);
@@ -502,7 +513,7 @@ function App() {
         {/* Landing só na raiz; /entrar, /criar-conta e qualquer página do painel pedem login */}
         {caminho === "/" || (paginaDaUrl(caminho) === null && !caminho.startsWith("/entrar") && caminho !== ROTA_CRIAR_CONTA)
           ? <Landing />
-          : <AuthPage mode={caminho === ROTA_CRIAR_CONTA ? "signup" : "login"} onAuth={handleAuth} loading={authLoading} onDemo={() => setAuthenticated(true)} onEsqueci={(email) => void esqueciSenha(email)} />}
+          : <AuthPage mode={caminho === ROTA_CRIAR_CONTA ? "signup" : "login"} onAuth={handleAuth} onGoogle={() => void entrarComGoogle()} loading={authLoading} onDemo={() => setAuthenticated(true)} onEsqueci={(email) => void esqueciSenha(email)} />}
         {aviso}
       </>
     );
@@ -573,6 +584,9 @@ function App() {
           {dataLoading && <div className="loading-strip">Sincronizando seus dados...</div>}
           {cobrancaAtiva() && ehQuimico(papel) && page !== "assinatura" && (estadoAssinatura.diasTeste !== null || assinatura?.status === "past_due") && (
             <button className="faixa-assinatura" onClick={() => goTo("assinatura")}>{estadoAssinatura.mensagem} {papel === "tenant_admin" ? "Assinar agora" : "Fale com o titular"}</button>
+          )}
+          {quimico && isSupabaseConfigured && profile && !profile.crq_number && page !== "perfil" && (
+            <button className="faixa-assinatura faixa-crq" onClick={() => goTo("perfil")}>Falta o seu número do CRQ: ele vai na comunicação ao CRQ, no diário e nos relatórios. Informar agora</button>
           )}
           <PageHeading page={page} name={displayName} papel={papel} onNavigate={goTo} onPrimary={() => setModal(page === "acoes" ? "action" : "rt")} />
           {page === "dashboard" && <Dashboard rts={rts} alerts={alerts} actions={actions} />}

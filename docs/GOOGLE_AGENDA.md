@@ -53,3 +53,12 @@ O portal infraestrutura-local sobe o mock do Google (`scripts/mock-google.mjs`, 
 4. **Deploy das functions e da migration** `20261025000000_google_agenda.sql`. A `google-retorno` vai com `verify_jwt = false` (já está em `supabase/config.toml`).
 
 Para testar com o Google de verdade no local: crie também o URI `http://127.0.0.1:57141/functions/v1/google-retorno` no mesmo ID do cliente e troque, no cartão do portal, as variáveis `GOOGLE_*` do mock pelas reais.
+
+## Login com Google (Entrar / Criar conta)
+
+O mesmo cliente OAuth do Google Cloud serve também para entrar no RTQuímico com a conta Google:
+- **Na tela:** botão "Entrar com o Google" / "Criar conta com o Google", que chama `supabase.auth.signInWithOAuth({ provider: "google" })` e volta para `/painel`.
+- **Primeiro acesso:** o trigger `handle_new_user` cria a conta como titular, com escritório próprio e o nome e a foto do Google (migration `20261025120000_login_google.sql`). O Google não manda o CRQ, então o painel mostra uma faixa até o químico informá-lo.
+- **Supabase de produção:** o provedor Google está ligado em Authentication → Providers, com o mesmo Client ID e Secret, e com `rtquimico.web.app` na lista de URLs de retorno.
+- **Google Cloud (obrigatório):** o cliente OAuth precisa ter o URI `https://qbmocwoqkqazoclmxmsh.supabase.co/auth/v1/callback` em "Authorized redirect URIs". Para usar no local, inclua também `http://127.0.0.1:57141/auth/v1/callback`.
+- **Local:** `supabase/config.toml` tem `[auth.external.google]`, que lê `supabase/.env` (fora do git). A mudança só vale depois de reiniciar o serviço "Supabase · RTQuímico" no portal.
