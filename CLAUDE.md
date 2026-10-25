@@ -120,7 +120,8 @@ Para mudanças **locais, isoladas e reversíveis**, a análise pode ser curta e 
 ### Deploy
 - Produção: **Firebase Hosting**, projeto `rtquimico` (https://rtquimico.web.app), conta `vieira.es@gmail.com` fixada nesta pasta com `firebase login:use`.
 - Deploy só quando o usuário declarar ("publica em produção", "deploya"). Aí é a entrega completa: commit + push no GitHub + `npm run build && firebase deploy --only hosting` + teste rápido em produção.
-- `.env.production` aponta para o Supabase remoto (URL + chave publicável, ambas públicas) e sobrepõe o `.env.local` no build. Antes de publicar, conferir que o bundle cita `qbmocwoqkqazoclmxmsh.supabase.co` e não cita `57141`/`55321` nem `sbp_`.
+- `.env.production` aponta para o Supabase remoto (URL + chave publicável, ambas públicas) e sobrepõe o `.env.local` no build, **mas só nas variáveis que ele define**: toda `VITE_*` nova do `.env.local` precisa aparecer no `.env.production` (vazia, se for o caso), senão vaza para produção. Em 25/10/2026 o link de checkout de exemplo vazou assim e ligou a cobrança com link falso. Antes de publicar, rodar `grep -l -E "exemplo-local|57141|55321|sbp_|mock-local|host\.docker\.internal" dist/assets/*.js` (tem de sair vazio) e conferir que o bundle cita `qbmocwoqkqazoclmxmsh.supabase.co`.
+- Supabase remoto: migrations pela Management API (cada uma numa transação, com o registro em `supabase_migrations.schema_migrations`); funções com `SUPABASE_ACCESS_TOKEN=<token> supabase functions deploy --project-ref qbmocwoqkqazoclmxmsh --use-api` (o token vai só no ambiente do comando; o login da CLI desta máquina é de outra conta). Secrets no remoto: `DEEPSEEK_API_KEY`, `APP_URL`; faltam `GOOGLE_CLIENT_ID/SECRET` e `KIWIFY_WEBHOOK_SECRET`.
 
 ### Documentação de planejamento
 - Documentos de planejamento de features futuras devem ser criados **dentro do projeto** (ex: `docs/`), NUNCA em memória de sessão.
