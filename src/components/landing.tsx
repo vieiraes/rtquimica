@@ -14,9 +14,9 @@ function Link({ to, className, children }: { to: string; className?: string; chi
 }
 
 const RECURSOS = [
-  { icon: BellRing, title: "Alertas de vigência", text: "Avisos 30 e 7 dias antes de cada documento vencer, no painel e no e-mail." },
+  { icon: BellRing, title: "Alertas de vigência", text: "Avisos antes de cada documento vencer, no painel e na sua Google Agenda." },
   { icon: BookOpenCheck, title: "Diário técnico", text: "Cada visita, coleta, laudo e orientação registrados com data, empresa e evidências." },
-  { icon: ClipboardCheck, title: "Conformidade e FISPQ", text: "Checklists por empresa e fichas de segurança conferidas item a item." },
+  { icon: ClipboardCheck, title: "Conformidade", text: "Checklist por empresa, item a item, com o progresso de cada RT." },
   { icon: FileText, title: "Biblioteca de POPs", text: "Modelos de procedimentos prontos para adaptar à realidade de cada empresa." },
   { icon: Wallet, title: "Financeiro e imposto de renda", text: "Honorários por empresa, despesas dedutíveis, carnê-leão do mês e o resumo pronto para a declaração." },
   { icon: Send, title: "Comunicação ao CRQ", text: "Nova RT cadastrada vira lembrete de comunicação ao conselho em até 24 horas." },
@@ -125,9 +125,9 @@ export function Landing() {
           <p className="pricing-price">R$ 79<small>/mês</small></p>
           <ul>
             <li><CheckCircle2 size={17} /> Até 6 responsabilidades técnicas ativas</li>
-            <li><CheckCircle2 size={17} /> Alertas de vigência no painel e no e-mail</li>
+            <li><CheckCircle2 size={17} /> Alertas de vigência no painel e na Google Agenda</li>
             <li><CheckCircle2 size={17} /> Diário técnico e documentos ilimitados</li>
-            <li><CheckCircle2 size={17} /> Checklists, FISPQ e biblioteca de POPs</li>
+            <li><CheckCircle2 size={17} /> Checklists de conformidade e biblioteca de POPs</li>
             <li><CheckCircle2 size={17} /> Financeiro com carnê-leão e resumo do IR</li>
           </ul>
           <Link to={ROTA_CRIAR_CONTA} className="button primary full large">Começar 7 dias grátis</Link>

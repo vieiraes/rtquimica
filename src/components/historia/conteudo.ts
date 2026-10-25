@@ -27,21 +27,21 @@ export const HISTORIA: readonly CartaoHistoria[] = [
     rotulo: "Laboratório",
     titulo: "O laudo sai e já fica anexado à RT.",
     texto:
-      "A análise do lote da Tintas Alfa termina, o laudo é emitido e vai para a pasta da empresa certa, com versão e data. Sem procurar PDF em e-mail antigo quando o fiscal pedir.",
+      "A análise do lote da Tintas Alfa termina, o laudo é emitido e anexado ao diário técnico da empresa, com data. Sem procurar PDF em e-mail antigo quando o fiscal pedir.",
   },
   {
     id: "prazo",
     rotulo: "Prazos",
     titulo: "Faltam 18 dias. Você já sabe.",
     texto:
-      "O certificado de RT da Aqua Vale vence em 18 dias. O alerta chegou 30 dias antes, no painel e no e-mail, e volta a avisar aos 7. Nenhuma vigência pega você de surpresa.",
+      "O certificado de RT da Aqua Vale vence em 18 dias. O alerta apareceu no painel e o lembrete está na Google Agenda, 28 e 7 dias antes. Nenhuma vigência pega você de surpresa.",
   },
   {
     id: "checklist",
     rotulo: "Conformidade",
-    titulo: "FISPQ em dia, tambor por tambor.",
+    titulo: "Conformidade em dia, item por item.",
     texto:
-      "No galpão da distribuidora, o checklist de conformidade confere cada item e cada ficha de segurança. Ao fim, 12 de 12 atualizadas e o relatório pronto para a empresa.",
+      "No galpão da distribuidora, o checklist de conformidade confere cada item: rotulagem, fichas de segurança, armazenagem, EPIs. Ao fim, a revisão fica salva com a porcentagem da empresa.",
   },
   {
     id: "noite",

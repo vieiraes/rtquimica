@@ -72,3 +72,6 @@ export function usePagina(padrao: Page = "dashboard") {
 
   return { pagina, ir, substituir };
 }
+
+/** Termo vindo da busca geral (?q=), para a página abrir já filtrada */
+export const termoDaUrl = () => new URLSearchParams(window.location.search).get("q") ?? "";

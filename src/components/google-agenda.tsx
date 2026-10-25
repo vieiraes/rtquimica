@@ -14,6 +14,7 @@ const RETORNOS: Record<string, string> = {
   conectado: "Google Agenda conectada. Os prazos já estão na agenda RTQuímico.",
   cancelado: "Conexão com o Google cancelada.",
   expirado: "O tempo para conectar acabou. Tente de novo.",
+  "sem-permissao": "Faltou marcar a permissão da agenda. Clique em Conectar de novo e, na tela do Google, marque a caixa \"Criar agendas secundárias do Google...\" antes de clicar em Continuar.",
   erro: "Não consegui conectar ao Google. Tente de novo.",
 };
 
@@ -32,7 +33,7 @@ export function GoogleAgenda({ showToast }: { showToast: (m: string) => void }) 
 
   useEffect(() => {
     void carregar();
-    // Volta do login do Google: /configuracoes?google=conectado|cancelado|expirado|erro
+    // Volta do login do Google: /configuracoes?google=conectado|cancelado|expirado|sem-permissao|erro
     const retorno = new URLSearchParams(window.location.search).get("google");
     if (retorno) {
       showToast(RETORNOS[retorno] ?? RETORNOS.erro);

@@ -1,7 +1,8 @@
-import { ArrowRight, Clock3, FileText, Search, Sparkles, Undo2 } from "lucide-react";
-import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { BookMarked, ChevronDown, FileText, Search, Sparkles, Undo2 } from "lucide-react";
+import { useCallback, useEffect, useState, type CSSProperties, type FormEvent } from "react";
 import { Field, Modal } from "./primitives";
 import { supabase } from "../lib/supabase";
+import { termoDaUrl } from "../lib/rotas";
 import { adaptarPop } from "../lib/ia";
 import { popTemplates } from "../data/mock";
 import type { RT } from "../types";
@@ -11,60 +12,140 @@ interface ModeloPop {
   title: string;
   segment: string;
   content: string;
+  summary: string | null;
+  sources: string[];
   /** null = modelo do RTQuímico; preenchido = POP do escritório */
   tenant_id: string | null;
 }
 
-const leitura = (texto: string) => `${Math.max(2, Math.round(texto.split(/\s+/).length / 180))} min`;
+const leitura = (texto: string) => `${Math.max(1, Math.round(texto.split(/\s+/).length / 180))} min`;
 
-/** Biblioteca: modelos do RTQuímico e os POPs do escritório, que nascem de um modelo (com ou sem IA). */
+// Uma cor por seção do caderno (como as abas do OneNote)
+const COR_SECAO: Record<string, string> = {
+  "Laboratório": "#2563a8", "Amostragem": "#0e7c86", "Água e efluentes": "#0a6aa8", "Resíduos": "#7a5a14",
+  "Segurança": "#b42318", "Armazenamento": "#b45309", "Alimentos": "#1d7f5a",
+};
+const ESCRITORIO = "Do meu escritório";
+const corDa = (secao: string) => (secao === ESCRITORIO ? "#6d4fb3" : COR_SECAO[secao] ?? "#4a5a6a");
+
+/** Texto do POP em blocos: título em MAIÚSCULAS, "- " vira lista, "1. " vira passo numerado */
+function TextoPop({ texto }: { texto: string }) {
+  const blocos: Array<{ tipo: "h" | "p" | "ul" | "ol"; itens: string[] }> = [];
+  for (const linha of texto.split("\n").map((l) => l.trim()).filter(Boolean)) {
+    const tipo = /^[A-ZÀ-Ú ]{4,}$/.test(linha) ? "h" : linha.startsWith("- ") ? "ul" : /^\d+\.\s/.test(linha) ? "ol" : "p";
+    const valor = tipo === "ul" ? linha.slice(2) : tipo === "ol" ? linha.replace(/^\d+\.\s/, "") : linha;
+    const ultimo = blocos[blocos.length - 1];
+    if ((tipo === "ul" || tipo === "ol") && ultimo?.tipo === tipo) ultimo.itens.push(valor);
+    else blocos.push({ tipo, itens: [valor] });
+  }
+  return (
+    <div className="pop-texto">
+      {blocos.map((b, i) => b.tipo === "h" ? <h4 key={i}>{b.itens[0].charAt(0) + b.itens[0].slice(1).toLowerCase()}</h4>
+        : b.tipo === "ul" ? <ul key={i}>{b.itens.map((x) => <li key={x}>{x}</li>)}</ul>
+        : b.tipo === "ol" ? <ol key={i}>{b.itens.map((x) => <li key={x}>{x}</li>)}</ol>
+        : <p key={i}>{b.itens[0]}</p>)}
+    </div>
+  );
+}
+
+/** Biblioteca em formato de caderno: seções à esquerda e POPs empilhados que se abrem no lugar. */
 export function Pops({ rts, tenantId, showToast }: { rts: RT[]; tenantId?: string; showToast: (m: string) => void }) {
-  const [modelos, setModelos] = useState<ModeloPop[]>(supabase ? [] : popTemplates.map((p) => ({ id: null, title: p.title, segment: p.segment, content: p.description, tenant_id: null })));
-  const [query, setQuery] = useState("");
-  const [soMeus, setSoMeus] = useState(false);
+  const [modelos, setModelos] = useState<ModeloPop[]>(supabase ? [] : popTemplates.map((p) => ({ id: null, title: p.title, segment: p.segment, content: p.description, summary: p.description, sources: [], tenant_id: null })));
+  const [query, setQuery] = useState(termoDaUrl);
+  const [secao, setSecao] = useState("Todas");
+  const [expandido, setExpandido] = useState<string | null>(null);
   const [aberto, setAberto] = useState<ModeloPop | null>(null);
 
   const carregar = useCallback(async () => {
     if (!supabase) return;
-    const { data, error } = await supabase.from("sop_templates").select("id, title, segment, content, tenant_id").order("tenant_id", { nullsFirst: false }).order("title");
+    const { data, error } = await supabase.from("sop_templates").select("id, title, segment, content, summary, sources, tenant_id").order("segment").order("title");
     if (error) showToast("Não consegui carregar a biblioteca.");
-    setModelos(data ?? []);
+    setModelos((data ?? []) as ModeloPop[]);
   }, [showToast]);
   useEffect(() => { void carregar(); }, [carregar]);
 
-  const termo = query.toLowerCase();
-  const filtrados = modelos.filter((p) => (!soMeus || p.tenant_id) && (p.title.toLowerCase().includes(termo) || p.segment.toLowerCase().includes(termo)));
-  const meus = modelos.filter((p) => p.tenant_id).length;
+  const secaoDe = (p: ModeloPop) => (p.tenant_id ? ESCRITORIO : p.segment);
+  const secoes = [...new Set(modelos.filter((p) => !p.tenant_id).map((p) => p.segment))].sort((a, b) => a.localeCompare(b, "pt-BR"));
+  const contar = (nome: string) => modelos.filter((p) => secaoDe(p) === nome).length;
+  const termo = query.trim().toLowerCase();
+  const filtrados = modelos.filter((p) => (secao === "Todas" || secaoDe(p) === secao) &&
+    (!termo || `${p.title} ${p.segment} ${p.summary ?? ""} ${p.content}`.toLowerCase().includes(termo)));
 
   const salvar = async (modelo: ModeloPop, titulo: string, texto: string) => {
     if (supabase && tenantId) {
       const meu = modelo.tenant_id === tenantId && modelo.id;
       const { error } = meu
         ? await supabase.from("sop_templates").update({ title: titulo, content: texto }).eq("id", modelo.id)
-        : await supabase.from("sop_templates").insert({ tenant_id: tenantId, title: titulo, segment: modelo.segment, content: texto });
+        : await supabase.from("sop_templates").insert({ tenant_id: tenantId, title: titulo, segment: modelo.segment, content: texto, summary: modelo.summary, sources: modelo.sources });
       if (error) { showToast("Não consegui salvar o POP."); return; }
       await carregar();
     }
     setAberto(null);
-    showToast("POP salvo na biblioteca do escritório.");
+    showToast(`POP salvo em "${ESCRITORIO}".`);
   };
+
+  const abaSecao = (nome: string, total: number) => (
+    <button key={nome} className={secao === nome ? "active" : ""} onClick={() => { setSecao(nome); setExpandido(null); }} style={{ "--cor-secao": nome === "Todas" ? "var(--primary)" : corDa(nome) } as CSSProperties}>
+      <i />{nome}<b>{total}</b>
+    </button>
+  );
 
   return (
     <>
-      <div className="library-toolbar">
-        <div className="search-field"><Search size={18} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar por título ou segmento..." aria-label="Buscar POP" /></div>
-        <button className={`button ${soMeus ? "primary" : "secondary"}`} onClick={() => setSoMeus(!soMeus)} aria-pressed={soMeus}><FileText size={17} /> Meus POPs ({meus})</button>
-      </div>
-      {filtrados.length === 0 && <p className="table-empty">{soMeus ? "O escritório ainda não tem POPs. Abra um modelo e salve a versão da empresa." : "Nenhum modelo com esse termo."}</p>}
-      <section className="pop-grid">
-        {filtrados.map((pop, index) => (
-          <article className="panel pop-card" key={pop.id ?? pop.title}>
-            <span className={`pop-icon tone-${index % 4}`}><FileText size={23} /></span>
-            <span className="category">{pop.tenant_id ? "Do seu escritório" : pop.segment}</span><h3>{pop.title}</h3><p>{pop.content.length > 160 ? `${pop.content.slice(0, 157)}...` : pop.content}</p>
-            <div><span><Clock3 size={14} /> {leitura(pop.content)} de leitura</span><button onClick={() => setAberto(pop)}>{pop.tenant_id ? "Abrir" : "Usar modelo"} <ArrowRight size={16} /></button></div>
-          </article>
-        ))}
+      <section className="panel pop-como-usar">
+        <h2>Como usar a biblioteca</h2>
+        <ol>
+          <li><b>Escolha a seção</b> à esquerda e clique num POP para ler o procedimento inteiro.</li>
+          <li><b>Confira as fontes</b> no fim de cada POP: são as normas oficiais em que o modelo se baseia.</li>
+          <li><b>Clique em "Usar este modelo"</b>, escolha a empresa e gere o rascunho com IA ou edite à mão. O POP salvo vai para "{ESCRITORIO}".</li>
+        </ol>
+        <p>Os modelos são do RTQuímico, escritos a partir das normas citadas. Não são documentos oficiais: adapte à empresa e confira a versão vigente de cada norma antes de assinar.</p>
       </section>
+      <div className="pop-caderno">
+        <nav className="pop-secoes" aria-label="Seções da biblioteca">
+          {abaSecao("Todas", modelos.length)}
+          {secoes.map((n) => abaSecao(n, contar(n)))}
+          <hr />
+          {abaSecao(ESCRITORIO, contar(ESCRITORIO))}
+        </nav>
+        <div className="pop-paginas">
+          <div className="search-field"><Search size={18} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar POP por nome, assunto ou norma..." aria-label="Buscar POP" /></div>
+          {filtrados.length === 0 && <p className="table-empty">{secao === ESCRITORIO ? "O escritório ainda não tem POPs. Abra um modelo, clique em \"Usar este modelo\" e salve a versão da empresa." : "Nenhum POP com esse termo."}</p>}
+          <div className="pop-pilha">
+            {filtrados.map((pop) => {
+              const chave = pop.id ?? pop.title;
+              const aberta = expandido === chave;
+              const nomeSecao = secaoDe(pop);
+              return (
+                <article key={chave} className={`pop-folha ${aberta ? "aberta" : ""}`} style={{ "--cor-secao": corDa(nomeSecao) } as CSSProperties}>
+                  <button className="pop-folha-topo" onClick={() => setExpandido(aberta ? null : chave)} aria-expanded={aberta}>
+                    <span className="pop-folha-secao">{nomeSecao}</span>
+                    <b>{pop.title}</b>
+                    <small>{pop.summary ?? pop.content.split("\n").find((l) => l.trim() && !/^[A-ZÀ-Ú ]{4,}$/.test(l.trim()))}</small>
+                    <span className="pop-folha-meta">{pop.sources.length > 0 && <><BookMarked size={14} /> {pop.sources.length} {pop.sources.length === 1 ? "fonte oficial" : "fontes oficiais"} · </>}{leitura(pop.content)} de leitura</span>
+                    <ChevronDown size={20} className="pop-folha-seta" />
+                  </button>
+                  {aberta && (
+                    <div className="pop-folha-corpo">
+                      <TextoPop texto={pop.content} />
+                      {pop.sources.length > 0 && (
+                        <div className="pop-fontes">
+                          <h4><BookMarked size={16} /> Fontes de referência</h4>
+                          <ul>{pop.sources.map((f) => <li key={f}>{f}</li>)}</ul>
+                          <small>Modelo de referência do RTQuímico, não é documento oficial. Confira a versão vigente de cada norma.</small>
+                        </div>
+                      )}
+                      <div className="pop-folha-acoes">
+                        <button className="button primary" onClick={() => setAberto(pop)}>{pop.tenant_id ? <><FileText size={16} /> Abrir e editar</> : <><Sparkles size={16} /> Usar este modelo</>}</button>
+                      </div>
+                    </div>
+                  )}
+                </article>
+              );
+            })}
+          </div>
+        </div>
+      </div>
       {aberto && <PopModal modelo={aberto} rts={rts} onClose={() => setAberto(null)} onSave={(t, x) => salvar(aberto, t, x)} />}
     </>
   );

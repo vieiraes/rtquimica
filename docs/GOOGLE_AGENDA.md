@@ -8,6 +8,13 @@ O químico clica em **Conectar Google Agenda** em Configurações e entra com a 
 
 A permissão pedida é `calendar.app.created`: o RTQuímico só mexe na agenda que ele mesmo criou, nunca nas outras agendas do químico. **Desconectar** apaga essa agenda e revoga o acesso.
 
+## Situação (25/10/2026)
+
+- Cliente OAuth criado no projeto `rtquimico` do Google Cloud (tipo Aplicativo da Web, URI de retorno da `google-retorno`).
+- Tela de permissão Externa; o escopo `calendar.app.created` aparece como **não sensível**.
+- `GOOGLE_CLIENT_ID` e `GOOGLE_CLIENT_SECRET` gravados nos secrets do Supabase remoto (cópia no `.env.local`).
+- **Modo Teste:** só os e-mails em Audience → Test users conseguem conectar, e a conexão expira a cada 7 dias. Para liberar a todos os químicos: completar a página Branding (logo, domínio `rtquimico.web.app`, links da política de privacidade e dos termos) e clicar em **Publish app**.
+
 ## Como funciona
 
 | Peça | Papel |

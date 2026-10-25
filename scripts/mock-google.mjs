@@ -46,12 +46,13 @@ createServer(async (req, res) => {
       const f = new URLSearchParams(await corpo(req));
       if (f.get("grant_type") === "authorization_code") {
         if (!estado.codigos[f.get("code")]) return json(res, 400, { error: "invalid_grant" });
+        const { escopo } = estado.codigos[f.get("code")];
         delete estado.codigos[f.get("code")];
         const refresh = `rt-${randomUUID()}`;
         const access = `at-${randomUUID()}`;
         estado.tokens[refresh] = { tipo: "refresh" };
         estado.tokens[access] = { tipo: "acesso" };
-        return json(res, 200, { access_token: access, refresh_token: refresh, expires_in: 3599, token_type: "Bearer" });
+        return json(res, 200, { access_token: access, refresh_token: refresh, scope: escopo, expires_in: 3599, token_type: "Bearer" });
       }
       if (f.get("grant_type") === "refresh_token") {
         if (estado.tokens[f.get("refresh_token")]?.tipo !== "refresh") return json(res, 400, { error: "invalid_grant" });

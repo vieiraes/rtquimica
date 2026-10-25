@@ -164,3 +164,4 @@ function Explicacao({ e }: { e: ExplicacaoRadar }) {
     </div>
   );
 }
+

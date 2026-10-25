@@ -32,6 +32,13 @@ export interface RT {
   uf?: string | null;
   /** AAAA-MM-DD, para formulários */
   inicioIso?: string;
+  /** Quando a RT foi cadastrada (ISO): conta o prazo de 24 h da comunicação ao CRQ */
+  criadoEm?: string;
+  /** Comunicação ao CRQ: data (ISO) e protocolo do início e do encerramento; sem data = pendente */
+  crqInicioEm?: string | null;
+  crqInicioProtocolo?: string | null;
+  crqFimEm?: string | null;
+  crqFimProtocolo?: string | null;
 }
 
 export interface Alert {

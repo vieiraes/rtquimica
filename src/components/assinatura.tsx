@@ -41,7 +41,7 @@ export function Assinatura({ assinatura, titular, email, tenantId, onAtualizar }
             </div>
           ) : <p className="form-hint">A assinatura ainda não está aberta: o uso do RTQuímico está liberado.</p>
         ) : <p className="form-hint">Quem assina é o titular do escritório. Se o acesso estiver bloqueado, fale com ele.</p>}
-        {titular && checkoutUrl && <p className="form-hint">O pagamento é feito na Kiwify (cartão, Pix ou boleto). A confirmação chega aqui sozinha em alguns minutos; depois clique em "Já paguei, atualizar". Para cancelar ou trocar o cartão, fale com o suporte do RTQuímico.</p>}
+        {titular && checkoutUrl && <p className="form-hint">O pagamento é feito na Kiwify (cartão, Pix ou boleto). A confirmação chega aqui sozinha em alguns minutos; depois clique em "Já paguei, atualizar".</p>}
       </article>
       <article className="panel assinatura-plano">
         <span className="category">PLANO PROFISSIONAL</span>

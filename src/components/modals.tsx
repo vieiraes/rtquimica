@@ -11,6 +11,10 @@ const daquiUmAno = () => { const d = new Date(); d.setFullYear(d.getFullYear() +
 
 type Consulta = { estado: "parado" | "buscando" | "achou" | "nao-existe" | "indisponivel" | "invalido"; dados?: DadosCnpj };
 
+// Os 21 conselhos regionais; a UF só onde é certa (os demais aparecem pelo número)
+const CRQS: Array<[string, string]> = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "XIII", "XIV", "XV", "XVI", "XVII", "XVIII", "XIX", "XX", "XXI"]
+  .map((n) => [`CRQ-${n}`, ({ II: "Minas Gerais", III: "Rio de Janeiro", IV: "São Paulo" } as Record<string, string>)[n] ?? ""]);
+
 export function NewRtModal({ onClose, onSave }: { onClose: () => void; onSave: (rt: RtInsertPayload) => void | Promise<void> }) {
   const [company, setCompany] = useState("");
   const [cnpj, setCnpj] = useState("");
@@ -18,6 +22,7 @@ export function NewRtModal({ onClose, onSave }: { onClose: () => void; onSave: (
   const [documento, setDocumento] = useState<"TRT" | "ART" | "CRT">("TRT");
   const [numero, setNumero] = useState("");
   const [regional, setRegional] = useState("CRQ-IV");
+  const [salvando, setSalvando] = useState(false);
   const [inicio, setInicio] = useState(hojeIso);
   const [vigencia, setVigencia] = useState(daquiUmAno);
   const [observacoes, setObservacoes] = useState("");
@@ -39,11 +44,12 @@ export function NewRtModal({ onClose, onSave }: { onClose: () => void; onSave: (
     }
   };
 
-  const submit = (event: FormEvent) => {
+  const submit = async (event: FormEvent) => {
     event.preventDefault();
-    if (!company || !cnpj) return;
+    if (!company || !cnpj || salvando) return;
     const d = consulta.estado === "achou" ? consulta.dados : undefined;
-    void onSave({
+    setSalvando(true);
+    try { await onSave({
       empresa: company,
       cnpj,
       documento,
@@ -53,11 +59,11 @@ export function NewRtModal({ onClose, onSave }: { onClose: () => void; onSave: (
       regional,
       observacoes,
       empresaDados: d && { razaoSocial: d.razaoSocial, cnae: d.cnae, cnaeDescricao: d.cnaeDescricao, municipio: d.municipio, uf: d.uf },
-    });
+    }); } finally { setSalvando(false); }
   };
   const d = consulta.dados;
   return (
-    <Modal title="Nova responsabilidade técnica" subtitle="Digite o CNPJ: a empresa é preenchida sozinha." onClose={onClose}>
+    <Modal title="Nova RT" subtitle="Digite o CNPJ: a empresa é preenchida sozinha." onClose={onClose}>
       <form onSubmit={submit}>
         <div className="form-grid">
           <Field label="CNPJ"><input autoFocus inputMode="numeric" value={cnpj} onChange={(event) => void mudarCnpj(event.target.value)} placeholder="00.000.000/0001-00" required /></Field>
@@ -81,13 +87,13 @@ export function NewRtModal({ onClose, onSave }: { onClose: () => void; onSave: (
           </div>
           <Field label="Tipo de documento"><select value={documento} onChange={(event) => setDocumento(event.target.value as "TRT" | "ART" | "CRT")}><option>TRT</option><option>ART</option><option>CRT</option></select></Field>
           <Field label="Número do documento (opcional)"><input value={numero} onChange={(event) => setNumero(event.target.value)} placeholder="Ex.: TRT-2026-0182" /></Field>
-          <Field label="Regional"><select value={regional} onChange={(event) => setRegional(event.target.value)}><option value="CRQ-IV">CRQ-IV • São Paulo</option><option value="CRQ-III">CRQ-III • Rio de Janeiro</option><option value="CRQ-II">CRQ-II • Minas Gerais</option></select></Field>
+          <Field label="Regional"><select value={regional} onChange={(event) => setRegional(event.target.value)}>{CRQS.map(([id, uf]) => <option key={id} value={id}>{uf ? `${id} • ${uf}` : id}</option>)}</select></Field>
           <Field label="Data de início"><input type="date" value={inicio} onChange={(event) => setInicio(event.target.value)} /></Field>
           <Field label="Data de vigência"><input type="date" value={vigencia} onChange={(event) => setVigencia(event.target.value)} /></Field>
         </div>
         <Field label="Observações"><textarea rows={3} value={observacoes} onChange={(event) => setObservacoes(event.target.value)} placeholder="Informações complementares sobre o vínculo..." /></Field>
         <div className="info-box"><Clock3 size={19} /><span><b>Lembrete automático</b>Ao salvar, criaremos um alerta para comunicação ao CRQ em até 24 horas.</span></div>
-        <footer><button type="button" className="button ghost" onClick={onClose}>Cancelar</button><button className="button primary">Cadastrar responsabilidade</button></footer>
+        <footer><button type="button" className="button ghost" onClick={onClose}>Cancelar</button><button className="button primary" disabled={salvando}>{salvando ? "Cadastrando..." : "Cadastrar RT"}</button></footer>
       </form>
     </Modal>
   );
@@ -108,10 +114,12 @@ export function NewActionModal({ rts, onClose, onSave }: { rts: RT[]; onClose: (
   };
   const [ia, setIa] = useState<{ carregando: boolean; erro: string; original: string | null; avisos: string[]; restantes: number | null }>({ carregando: false, erro: "", original: null, avisos: [], restantes: null });
   const selectedRt = rts.find((rt) => String(rt.id) === String(rtId)) ?? rts[0];
-  const submit = (event: FormEvent) => {
+  const [salvando, setSalvando] = useState(false);
+  const submit = async (event: FormEvent) => {
     event.preventDefault();
-    if (!description || !selectedRt) return;
-    void onSave({ rtId: selectedRt.id, category, company: selectedRt.empresa, description, arquivos });
+    if (!description || !selectedRt || salvando) return;
+    setSalvando(true);
+    try { await onSave({ rtId: selectedRt.id, category, company: selectedRt.empresa, description, arquivos }); } finally { setSalvando(false); }
   };
   // A anotação solta vira o registro formal; o original fica guardado para desfazer
   const redigir = async () => {
@@ -134,7 +142,7 @@ export function NewActionModal({ rts, onClose, onSave }: { rts: RT[]; onClose: (
     <Modal title="Registrar ação técnica" subtitle="Crie um registro claro, datado e vinculado à empresa." onClose={onClose}>
       <form onSubmit={submit}>
         <div className="form-grid">
-          <Field label="Empresa"><select value={String(rtId)} onChange={(event) => setRtId(event.target.value)}>{rts.map((rt) => <option key={rt.id} value={String(rt.id)}>{rt.empresa}</option>)}</select></Field>
+          <Field label="Empresa"><select value={String(rtId)} onChange={(event) => setRtId(event.target.value)}>{rts.length ? rts.map((rt) => <option key={rt.id} value={String(rt.id)}>{rt.empresa}</option>) : <option value="">Cadastre uma RT primeiro (menu RT)</option>}</select></Field>
           <Field label="Categoria"><select value={category} onChange={(event) => setCategory(event.target.value)}>{["Visita técnica", "Coleta", "Análise", "Laudo", "Orientação", "Outro"].map((name) => <option key={name}>{name}</option>)}</select></Field>
         </div>
         <Field label="Descrição da ação"><textarea autoFocus rows={6} value={description} onChange={(event) => setDescription(event.target.value)} placeholder="Descreva o que foi realizado, orientações fornecidas e decisões tomadas. Pode ser em tópicos: a IA organiza." required /></Field>
@@ -160,7 +168,7 @@ export function NewActionModal({ rts, onClose, onSave }: { rts: RT[]; onClose: (
           </ul>
         )}
         {erroArquivo && <p className="ia-diario-erro" role="alert">{erroArquivo}</p>}
-        <footer><button type="button" className="button ghost" onClick={onClose}>Cancelar</button><button className="button primary">Salvar no diário</button></footer>
+        <footer><button type="button" className="button ghost" onClick={onClose}>Cancelar</button><button className="button primary" disabled={salvando || !selectedRt}>{salvando ? "Salvando..." : "Salvar no diário"}</button></footer>
       </form>
     </Modal>
   );

@@ -49,6 +49,11 @@ export function mapRt(row: Record<string, unknown>): RT {
     cidade: (row.company_city as string | null) ?? null,
     uf: (row.company_state as string | null) ?? null,
     inicioIso: row.start_date as string,
+    criadoEm: row.created_at as string,
+    crqInicioEm: (row.crq_start_communicated_at as string | null) ?? null,
+    crqInicioProtocolo: (row.crq_start_protocol as string | null) ?? null,
+    crqFimEm: (row.crq_end_communicated_at as string | null) ?? null,
+    crqFimProtocolo: (row.crq_end_protocol as string | null) ?? null,
   };
 }
 

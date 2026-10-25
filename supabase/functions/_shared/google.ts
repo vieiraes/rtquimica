@@ -18,7 +18,8 @@ export const google = {
 };
 
 // Agenda própria do app: o químico vê e apaga à vontade, e o RTQuímico não toca nas outras agendas dele
-export const ESCOPOS = ["openid", "email", "https://www.googleapis.com/auth/calendar.app.created"];
+export const ESCOPO_AGENDA = "https://www.googleapis.com/auth/calendar.app.created";
+export const ESCOPOS = ["openid", "email", ESCOPO_AGENDA];
 
 const tempo = () => AbortSignal.timeout(15000);
 
@@ -41,7 +42,7 @@ export async function trocarCodigo(code: string) {
     body: new URLSearchParams({ code, client_id: google.clientId(), client_secret: google.clientSecret(), redirect_uri: google.retorno(), grant_type: "authorization_code" }),
     signal: tempo(),
   });
-  return await json<{ access_token: string; refresh_token?: string }>(r, "troca do código");
+  return await json<{ access_token: string; refresh_token?: string; scope?: string }>(r, "troca do código");
 }
 
 export async function tokenDeAcesso(refreshToken: string) {

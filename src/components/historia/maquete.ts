@@ -133,7 +133,7 @@ function cartaoDoPrazo() {
   }, 480, 320);
 }
 
-/** Prancheta do checklist: itens conferidos e o total de FISPQ em dia. */
+/** Prancheta do checklist de conformidade: itens conferidos. */
 function prancheta() {
   return textura((ctx, w, h) => {
     ctx.fillStyle = "#ffffff";
@@ -143,7 +143,7 @@ function prancheta() {
     ctx.fillStyle = "#ffffff";
     ctx.font = `800 30px ${FONTE}`;
     ctx.textBaseline = "middle";
-    ctx.fillText("CHECKLIST · FISPQ", 30, 40);
+    ctx.fillText("CONFORMIDADE", 30, 40);
     const itens = ["Rotulagem GHS", "Fichas atualizadas", "Armazenagem", "EPIs disponíveis", "Ventilação", "Registro de lote"];
     itens.forEach((item, i) => {
       const y = 126 + i * 56;

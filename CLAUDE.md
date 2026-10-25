@@ -35,6 +35,32 @@
 - **Equipe** (`supabase/functions/equipe`): titular convida químico (cria o acesso, coloca no escritório e manda o e-mail de definir senha → `/definir-senha`), desativa/reativa (ban no Auth + `profiles.active`); superadmin muda papel titular/equipe. O Auth grava o `app_metadata` depois do INSERT, então o trigger cria um workspace avulso: a função corrige o perfil e apaga esse workspace.
 - **Comunicação ao CRQ** (menu ⋮ da RT): texto por modelo, sem IA (`src/lib/comunicacao-crq.ts`); marcar como comunicada fecha o alerta `comunicacao_pendente` da RT e registra no diário com o protocolo. "Encerrar RT" muda para `canceled` (o trigger cria o alerta do encerramento).
 - **Conformidade** grava um checklist por RT em `checklists`; o `progresso` da RT (lista e média do painel) vem dele e é `null` sem revisão. **Diário**: evidências no bucket `documentos` (pasta do escritório), busca, período e relatório para imprimir/PDF.
+- **Navegação** (`src/components/layout.tsx`):
+  - o menu lateral tem só as áreas de trabalho, com o Radar como cartão de destaque ("Leitura do dia") no topo e "RT 3/6" (RTs ativas / limite do CRQ);
+  - o menu do nome, no canto superior direito, tem Perfil e configurações, Equipe, Assinatura e Sair;
+  - os alertas abrem pelo sininho, que mostra o contador e balança enquanto há alerta não lido; a página `/alertas` abre por "Ver todos os alertas";
+  - o breadcrumb (Início › seção › página) aparece em todas as páginas internas;
+  - botão de ação que já existe no topo da página não se repete na barra; quando a barra precisa dele no celular, usa a classe `so-celular`;
+  - o Dashboard é só informativo, sem botões de ação e sem o Radar (o Radar fica só no menu lateral).
+- **Quadro do CRQ** (tela RT, aba "Quadro do CRQ"): é um kanban por RT com as colunas Comunicar início, Início comunicado, Comunicar encerramento e Encerramento comunicado.
+  - **Dados:** colunas `crq_start_*` e `crq_end_*` em `technical_responsibilities`.
+  - **Arrastar:** mover um cartão executa a transição de verdade (`transicaoCrq` em `src/lib/comunicacao-crq.ts`):
+    - comunicar abre o modal com o protocolo;
+    - voltar desfaz a comunicação e reabre o alerta;
+    - "Comunicar encerramento" encerra a RT;
+    - os movimentos proibidos mostram o motivo.
+  - **Celular e lista:** no celular, o menu ⋮ do cartão tem "Mover para". A lista e o quadro usam o mesmo estado, e o menu ⋮ da lista também desfaz a comunicação.
+- **Busca geral** (`src/components/busca-geral.tsx`):
+  - **Onde procura:** RTs (nome, razão social, CNPJ, número), pessoas (nome, e-mail, CRQ), diário, POPs, financeiro, alertas e páginas. O superadmin busca usuários e escritórios.
+  - **Resultados:** lista agrupada logo abaixo da caixa, com setas e Enter.
+  - **Ao abrir um resultado:** a página abre filtrada por `?q=` (`termoDaUrl`, em `src/lib/rotas.ts`), e o `<main>` remonta pela chave.
+- **Biblioteca de POPs:**
+  - **Origem:** os modelos globais vêm da migration `20261025100000_biblioteca_pops.sql`. O texto-fonte está organizado por seções: objetivo, aplicação, responsabilidades, materiais, procedimento e registros.
+  - **Colunas:** `slug`, `summary` e `sources`, esta última com as normas oficiais citadas.
+  - **Tela:** formato de caderno, com seções coloridas e folhas empilhadas que se abrem.
+  - **Aviso obrigatório:** os modelos são de referência e não são documentos oficiais; a tela diz isso.
+- **Modais:** `Modal` (em `primitives.tsx`) envolve o conteúdo em `.modal-corpo`. Só o miolo rola, o `footer` gruda embaixo e os cantos ficam sempre arredondados. Não ponha `overflow` no `.modal`.
+- **Foto do perfil:** bucket público `fotos` (`<user_id>/foto.jpg`); o navegador reduz a imagem para 320×320 JPEG (`src/lib/foto-perfil.ts`) e grava o endereço em `profiles.avatar_url`.
 - **Produto explícito:** telas e documentos dizem onde clicar e o que preencher (nome exato do botão ou ficha); em assunto de órgão oficial, passo a passo e tabela campo → valor.
 - **Edge Functions no local:** função nova só é servida depois de reiniciar o serviço "Supabase · RTQuímico" no portal (a lista de funções é montada quando ele liga).
 - Papéis (`app_role`): `superadmin`, `tenant_admin`, `tenant_member`, `tenant_external_client` — detalhes em `docs/CONHECIMENTO.md`. O que cada papel vê fica em `src/lib/papeis.ts` (menu, página inicial e redirecionamento de URL de outro papel):

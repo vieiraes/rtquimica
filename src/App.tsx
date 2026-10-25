@@ -2,6 +2,7 @@ import { CheckCircle2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { initialActions, initialAlerts, initialRts } from "./data/mock";
 import { isSupabaseConfigured, supabase } from "./lib/supabase";
+import { enviarFoto, removerFoto } from "./lib/foto-perfil";
 import { desde, formatDate } from "./lib/format";
 import { categoryToDb, mapAction, mapAlert, mapRt } from "./lib/mappers";
 import { navegar, paginaDaUrl, ROTA_CRIAR_CONTA, ROTA_DEFINIR_SENHA, ROTAS, useCaminho, usePagina } from "./lib/rotas";
@@ -9,7 +10,7 @@ import { Brand } from "./components/primitives";
 import { ComunicacaoModal, NewActionModal, NewRtModal } from "./components/modals";
 import type { TipoComunicacao } from "./lib/comunicacao-crq";
 import { Pops } from "./components/pops";
-import { Header, PageHeading, Sidebar } from "./components/layout";
+import { Header, PageHeading, Sidebar, VoltarAoTopo } from "./components/layout";
 import { Landing } from "./components/landing";
 import { AuthPage, DefinirSenha } from "./components/auth-page";
 import { traduzirErroAuth } from "./lib/auth-erros";
@@ -34,6 +35,7 @@ interface Profile {
   crq_number: string | null;
   crq_state: string | null;
   tax_regime: "pf" | "pj" | null;
+  avatar_url: string | null;
 }
 
 function App() {
@@ -169,12 +171,33 @@ function App() {
     setRadarNovas((itens.data ?? []).filter((i) => !jaLidos.has(i.id)).length);
   }
 
+  // Resultado da busca geral: abre a página com o termo na URL (?q=); a chave remonta a página para ela ler o termo
+  const [chaveBusca, setChaveBusca] = useState(0);
+  const abrirDaBusca = (pagina: Page, termo?: string) => {
+    goTo(pagina);
+    if (termo) window.history.replaceState(null, "", `${ROTAS[pagina]}?q=${encodeURIComponent(termo)}`);
+    setChaveBusca((n) => n + 1);
+  };
+
   const goTo = (next: Page) => {
     ir(next);
     setSidebarOpen(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+
+  // Foto do perfil: arquivo novo envia (já reduzida), null remove
+  const trocarFoto = async (arquivo: File | null) => {
+    if (!profile) return;
+    try {
+      const url = arquivo ? await enviarFoto(profile.id, arquivo) : null;
+      if (!arquivo) await removerFoto(profile.id);
+      setProfile({ ...profile, avatar_url: url });
+      showToast(arquivo ? "Foto do perfil atualizada." : "Foto removida.");
+    } catch (erro) {
+      showToast(erro instanceof Error ? erro.message : "Não consegui trocar a foto.");
+    }
+  };
 
   const displayName = profile?.name ?? session?.user.email?.split("@")[0] ?? "Mariana Vieira";
   const crq = isSupabaseConfigured ? profile?.crq_number ?? null : "04289123";
@@ -391,7 +414,7 @@ function App() {
   };
 
   // Encerrar a RT: o trigger do banco cria o alerta de comunicação do encerramento; em seguida abre a comunicação
-  const encerrarRt = async (rt: RT) => {
+  const encerrarRt = async (rt: RT, abrirComunicacao = true) => {
     if (!window.confirm(`Encerrar a RT da ${rt.empresa}? Ela sai das RTs ativas e fica o alerta para comunicar o CRQ.`)) return;
     if (supabase && session?.user) {
       const { data, error } = await supabase.from("technical_responsibilities").update({ status: "canceled" }).eq("id", rt.id).select().single();
@@ -400,31 +423,54 @@ function App() {
       setRts((atual) => atual.map((x) => (x.id === rt.id ? atualizada : x)));
       await refreshAlerts();
       atualizarAgendaEmSegundoPlano();
-      setComunicacao({ rt: atualizada, tipo: "encerramento" });
+      if (abrirComunicacao) setComunicacao({ rt: atualizada, tipo: "encerramento" });
     } else {
       const atualizada = { ...rt, status: "Cancelada" as const };
       setRts((atual) => atual.map((x) => (x.id === rt.id ? atualizada : x)));
-      setComunicacao({ rt: atualizada, tipo: "encerramento" });
+      if (abrirComunicacao) setComunicacao({ rt: atualizada, tipo: "encerramento" });
     }
     showToast("RT encerrada. Comunique o CRQ.");
   };
 
   // Comunicação feita: fecha o alerta pendente da RT e deixa o registro (com protocolo) no diário técnico
   const registrarComunicacao = async (rt: RT, { tipo, protocolo }: { tipo: TipoComunicacao; protocolo: string; data: string }) => {
+    const agora = new Date().toISOString();
+    const campos = tipo === "inicio"
+      ? { crq_start_communicated_at: agora, crq_start_protocol: protocolo || null }
+      : { crq_end_communicated_at: agora, crq_end_protocol: protocolo || null };
+    const naTela = tipo === "inicio" ? { crqInicioEm: agora, crqInicioProtocolo: protocolo || null } : { crqFimEm: agora, crqFimProtocolo: protocolo || null };
     const descricao = `Comunicação de ${tipo === "inicio" ? "início" : "encerramento"} da responsabilidade técnica (${rt.documento} ${rt.numero}) enviada ao ${rt.regional}${protocolo ? `, protocolo ${protocolo}` : ""}.`;
     if (supabase && session?.user) {
-      const [{ error: e1 }, { data, error: e2 }] = await Promise.all([
+      const [{ error: e1 }, { data, error: e2 }, { error: e3 }] = await Promise.all([
         supabase.from("alerts").update({ is_read: true }).eq("rt_id", rt.id).eq("type", "comunicacao_pendente"),
         supabase.from("technical_actions").insert({ tenant_id: profile?.tenant_id, rt_id: rt.id, category: "outro", description: descricao, attachments: [] }).select("*, technical_responsibilities(company_name)").single(),
+        supabase.from("technical_responsibilities").update(campos).eq("id", rt.id),
       ]);
-      if (e1 || e2) { showToast("Não consegui registrar a comunicação."); return; }
+      if (e1 || e2 || e3) { showToast("Não consegui registrar a comunicação."); return; }
       setActions((atual) => [mapAction(data), ...atual]);
       await refreshAlerts();
     } else {
       setActions((atual) => [{ id: Date.now(), rtId: rt.id, category: "Outro", company: rt.empresa, description: descricao, date: "agora", evidence: 0 }, ...atual]);
     }
+    setRts((atual) => atual.map((x) => (x.id === rt.id ? { ...x, ...naTela } : x)));
     setComunicacao(null);
-    showToast("Comunicação registrada no diário técnico.");
+    showToast("Comunicação registrada: a RT mudou de coluna no Quadro do CRQ e o registro foi para o diário técnico.");
+  };
+
+  // Desfazer (quadro do CRQ ou menu ⋮): a RT volta a "comunicar" e o alerta pendente reabre
+  const desfazerComunicacao = async (rt: RT, tipo: TipoComunicacao) => {
+    if (!window.confirm(`Desfazer a comunicação do ${tipo === "inicio" ? "início" : "encerramento"} da RT da ${rt.empresa}? Ela volta para "Comunicar ${tipo === "inicio" ? "início" : "encerramento"}".`)) return;
+    const campos = tipo === "inicio" ? { crq_start_communicated_at: null, crq_start_protocol: null } : { crq_end_communicated_at: null, crq_end_protocol: null };
+    if (supabase && session?.user) {
+      const [{ error }] = await Promise.all([
+        supabase.from("technical_responsibilities").update(campos).eq("id", rt.id),
+        supabase.from("alerts").update({ is_read: false }).eq("rt_id", rt.id).eq("type", "comunicacao_pendente"),
+      ]);
+      if (error) { showToast("Não consegui desfazer a comunicação."); return; }
+      await refreshAlerts();
+    }
+    setRts((atual) => atual.map((x) => (x.id === rt.id ? { ...x, ...(tipo === "inicio" ? { crqInicioEm: null, crqInicioProtocolo: null } : { crqFimEm: null, crqFimProtocolo: null }) } : x)));
+    showToast("Comunicação desfeita: a RT voltou para a coluna de pendentes.");
   };
 
   const markAlertsRead = async (ids?: Array<string | number>) => {
@@ -497,12 +543,7 @@ function App() {
         open={sidebarOpen}
         onNavigate={goTo}
         onClose={() => setSidebarOpen(false)}
-        onLogout={handleLogout}
-        name={displayName}
-        subtitle={subtitulo}
-        initials={initials}
-        activeCount={rts.filter((rt) => rt.status === "Ativa").length}
-        unread={alerts.filter((alert) => !alert.read).length}
+        rtsAtivas={rts.filter((rt) => rt.status === "Ativa").length}
         atrasados={honorariosAtrasados}
         radarNovas={radarNovas}
         restringir={bloqueado ? PAGINAS_SEM_ASSINATURA : undefined}
@@ -511,22 +552,31 @@ function App() {
       <div className="main-column">
         <Header
           onMenu={() => setSidebarOpen(true)}
-          onProfile={() => goTo("perfil")}
-          unread={alerts.filter((alert) => !alert.read).length}
+          onNavigate={goTo}
+          restringir={bloqueado ? PAGINAS_SEM_ASSINATURA : undefined}
+          tenantId={profile?.tenant_id}
+          rts={rts}
+          actions={actions}
+          onBuscaAbrir={abrirDaBusca}
+          onLogout={handleLogout}
+          email={profile?.email ?? session?.user.email ?? ""}
+          alerts={alerts}
+          onMarkRead={markAlertsRead}
           onAlerts={() => goTo("alertas")}
           name={displayName}
           subtitle={subtitulo}
           initials={initials}
+          foto={profile?.avatar_url ?? null}
           papel={papel}
         />
-        <main className="page">
+        <main className="page" key={chaveBusca}>
           {dataLoading && <div className="loading-strip">Sincronizando seus dados...</div>}
           {cobrancaAtiva() && ehQuimico(papel) && page !== "assinatura" && (estadoAssinatura.diasTeste !== null || assinatura?.status === "past_due") && (
             <button className="faixa-assinatura" onClick={() => goTo("assinatura")}>{estadoAssinatura.mensagem} {papel === "tenant_admin" ? "Assinar agora" : "Fale com o titular"}</button>
           )}
-          <PageHeading page={page} name={displayName} onPrimary={() => setModal(page === "acoes" ? "action" : "rt")} />
-          {page === "dashboard" && <Dashboard rts={rts} alerts={alerts} onNavigate={goTo} onNewRt={() => setModal("rt")} />}
-          {page === "rts" && <Responsibilities rts={rts} onNew={() => setModal("rt")} acoes={{ onComunicar: (rt) => setComunicacao({ rt, tipo: rt.status === "Cancelada" ? "encerramento" : "inicio" }), onEncerrar: (rt) => void encerrarRt(rt) }} />}
+          <PageHeading page={page} name={displayName} papel={papel} onNavigate={goTo} onPrimary={() => setModal(page === "acoes" ? "action" : "rt")} />
+          {page === "dashboard" && <Dashboard rts={rts} alerts={alerts} actions={actions} />}
+          {page === "rts" && <Responsibilities rts={rts} onNew={() => setModal("rt")} acoes={{ onComunicar: (rt, tipo) => setComunicacao({ rt, tipo: tipo ?? (rt.status === "Cancelada" ? "encerramento" : "inicio") }), onEncerrar: (rt, abrir) => void encerrarRt(rt, abrir), onDesfazerCrq: (rt, tipo) => void desfazerComunicacao(rt, tipo), onAviso: showToast }} />}
           {page === "alertas" && <Alerts alerts={alerts} onMarkRead={markAlertsRead} onNavigate={goTo} />}
           {page === "acoes" && <TechnicalDiary actions={actions} onNew={() => setModal("action")} quimico={{ nome: displayName, crq }} />}
           {page === "checklist" && <Compliance rts={rts} tenantId={profile?.tenant_id} showToast={showToast} onSalvo={(rtId, progresso) => setRts((atual) => atual.map((r) => (r.id === rtId ? { ...r, progresso } : r)))} />}
@@ -538,12 +588,14 @@ function App() {
           {page === "equipe" && <Equipe tenantId={profile?.tenant_id} euId={profile?.id} showToast={showToast} />}
           {page === "perfil" && (
             <Profile
-              dados={{ name: displayName, email: profile?.email ?? session?.user.email ?? "", crq, crqState: profile?.crq_state ?? null, papel: papel ? ROTULO_PAPEL[papel] : "Responsável técnico", quimico, regime: profile?.tax_regime ?? null }}
+              dados={{ name: displayName, email: profile?.email ?? session?.user.email ?? "", crq, crqState: profile?.crq_state ?? null, papel: papel ? ROTULO_PAPEL[papel] : "Responsável técnico", quimico, regime: profile?.tax_regime ?? null, foto: profile?.avatar_url ?? null }}
               onSave={saveProfile}
+              onFoto={trocarFoto}
             />
           )}
           {page === "perfil" && quimico && <GoogleAgenda showToast={showToast} />}
         </main>
+        <VoltarAoTopo />
       </div>
       {modal === "rt" && (
         <NewRtModal

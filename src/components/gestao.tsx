@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react
 import { Field, MenuAcoes, Modal, PanelHeader } from "./primitives";
 import { chamarFuncao } from "../lib/funcoes";
 import { supabase } from "../lib/supabase";
+import { termoDaUrl } from "../lib/rotas";
 import { papelDe, ROTULO_PAPEL, type Papel } from "../lib/papeis";
 import { usuariosDemo } from "../data/mock";
 
@@ -78,7 +79,7 @@ export function Plataforma({ showToast }: { showToast: (m: string) => void }) {
   const [carregando, setCarregando] = useState(Boolean(supabase));
   const [erro, setErro] = useState("");
   const [filtro, setFiltro] = useState<Filtro>("todos");
-  const [busca, setBusca] = useState("");
+  const [busca, setBusca] = useState(termoDaUrl);
 
   const carregar = useCallback(async () => {
     if (!supabase) return;
@@ -152,7 +153,7 @@ export function Plataforma({ showToast }: { showToast: (m: string) => void }) {
         {([
           ["Usuários", usuarios.length, "contas na plataforma", UsersRound],
           ["Químicos", quimicos, "titulares e equipe", ShieldCheck],
-          ["Escritórios de RT", escritoriosDeRt.length, "assinaturas", Building2],
+          ["Escritórios de RT", escritoriosDeRt.length, "com químicos", Building2],
           ["RTs ativas", rtsAtivas, "em todos os escritórios", ShieldCheck],
         ] as const).map(([rotulo, valor, detalhe, Icone]) => (
           <article className="stat-card" key={rotulo}><div className="stat-icon blue"><Icone size={21} /></div><span>{rotulo}</span><strong>{valor}</strong><small>{detalhe}</small></article>
@@ -160,7 +161,7 @@ export function Plataforma({ showToast }: { showToast: (m: string) => void }) {
       </section>
 
       <article className="panel table-panel">
-        <PanelHeader title="Usuários da plataforma" subtitle="Quem tem conta no RTQuímico, com papel e escritório" />
+        <PanelHeader title="Contas" subtitle="Quem tem conta no RTQuímico, com papel e escritório" />
         <div className="toolbar">
           <label className="search-field"><Search size={17} /><input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar por nome ou e-mail" aria-label="Buscar usuário" /></label>
           <div className="filter-tabs">
@@ -236,7 +237,7 @@ export function Equipe({ tenantId, euId, showToast }: { tenantId?: string; euId?
         {supabase && <button className="button primary" onClick={() => setConvidando(true)}><UserPlus size={17} /> Convidar químico</button>}
       </header>
       {carregando ? <p className="table-empty">Carregando...</p> : <TabelaUsuarios usuarios={pessoas} mostrarEscritorio={false} acoesDe={supabase ? acoesDe : undefined} />}
-      <p className="table-note">Quem você convida entra como químico da equipe: vê e registra as RTs do escritório, sem a tela Equipe. Para tornar alguém titular, fale com o suporte do RTQuímico.</p>
+      <p className="table-note">Quem você convida entra como químico da equipe: vê e registra as RTs do escritório, sem a tela Equipe.</p>
       {convidando && <ConviteModal onClose={() => setConvidando(false)} onConvidar={async (nome, email) => {
         try {
           const r = await chamarFuncao<{ emailEnviado: boolean }>("equipe", { acao: "convidar", nome, email });

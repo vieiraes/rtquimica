@@ -82,7 +82,7 @@ export function AuthPage({
         <aside className="auth-page-aside" aria-label="Por que usar o RTQuímico">
           <h2>Sua responsabilidade técnica, em ordem.</h2>
           <ul>
-            <li><BellRing size={20} /><span><b>Nenhum prazo esquecido</b>Alertas de vigência 30 e 7 dias antes, no painel e no e-mail.</span></li>
+            <li><BellRing size={20} /><span><b>Nenhum prazo esquecido</b>Alertas de vigência no painel e lembretes na sua Google Agenda.</span></li>
             <li><BookOpenCheck size={20} /><span><b>Histórico que se sustenta</b>Diário técnico com data, empresa e evidências de cada atuação.</span></li>
             <li><ShieldCheck size={20} /><span><b>Cada empresa no seu lugar</b>Até seis empresas, com dados isolados e documentos em pasta privada.</span></li>
           </ul>

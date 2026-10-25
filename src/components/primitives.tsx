@@ -1,4 +1,4 @@
-import { ChevronRight, EllipsisVertical, FlaskConical, Search, X } from "lucide-react";
+import { EllipsisVertical, FlaskConical, Search, X } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
 export function Brand() {
@@ -10,24 +10,25 @@ export function Brand() {
   );
 }
 
-export function PanelHeader({ title, subtitle, action, onAction }: { title: string; subtitle?: string; action?: string; onAction?: () => void }) {
-  return <header className="panel-header"><div><h2>{title}</h2>{subtitle && <p>{subtitle}</p>}</div>{action && <button onClick={onAction}>{action} <ChevronRight size={16} /></button>}</header>;
+export function PanelHeader({ title, subtitle }: { title: string; subtitle?: string }) {
+  return <header className="panel-header"><div><h2>{title}</h2>{subtitle && <p>{subtitle}</p>}</div></header>;
 }
 
 export function Field({ label, children }: { label: string; children: ReactNode }) {
   return <label className="field"><span>{label}</span>{children}</label>;
 }
 
-export function Empty({ title, text, action }: { title: string; text: string; action?: () => void }) {
-  return <div className="empty"><Search size={32} /><h3>{title}</h3><p>{text}</p>{action && <button className="button primary" onClick={action}>Cadastrar RT</button>}</div>;
+export function Empty({ title, text }: { title: string; text: string }) {
+  return <div className="empty"><Search size={32} /><h3>{title}</h3><p>{text}</p></div>;
 }
 
 export function Modal({ title, subtitle, onClose, children }: { title: string; subtitle: string; onClose: () => void; children: ReactNode }) {
   return (
     <div className="modal-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
       <section className="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-        <header><div><span className="eyebrow">RTQUÍMICO</span><h2 id="modal-title">{title}</h2><p>{subtitle}</p></div><button className="icon-button" onClick={onClose}><X size={20} /></button></header>
-        {children}
+        <header><div><h2 id="modal-title">{title}</h2><p>{subtitle}</p></div><button className="icon-button" onClick={onClose} aria-label="Fechar"><X size={20} /></button></header>
+        {/* Só o miolo rola: cabeçalho fixo, rodapé (footer) grudado embaixo e cantos sempre arredondados */}
+        <div className="modal-corpo">{children}</div>
       </section>
     </div>
   );
@@ -55,4 +56,9 @@ export function MenuAcoes({ rotulo, acoes }: { rotulo: string; acoes: Array<{ te
       )}
     </div>
   );
+}
+
+/** Foto do perfil quando existe; senão as iniciais */
+export function Avatar({ foto, iniciais, className = "" }: { foto?: string | null; iniciais: string; className?: string }) {
+  return <span className={`avatar ${className}`.trim()}>{foto ? <img src={foto} alt="" /> : iniciais}</span>;
 }

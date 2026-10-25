@@ -344,8 +344,8 @@ export function Financeiro({ rts, perfil, quimico, showToast, onMudou }: { rts: 
   return (
     <div className="financeiro">
       {carregando && <div className="loading-strip">Carregando o financeiro...</div>}
-      {atrasados.length > 0 && (
-        <button className="fin-alerta" onClick={() => setAba("honorarios")}>
+      {atrasados.length > 0 && aba !== "honorarios" && (
+        <button className="fin-alerta" onClick={() => setAba("honorarios")} title="Abrir a aba Honorários">
           <AlertTriangle size={19} /> {atrasados.length === 1 ? "1 honorário em atraso" : `${atrasados.length} honorários em atraso`}, somando {reais(soma(atrasados))}.
         </button>
       )}
@@ -400,7 +400,7 @@ export function Financeiro({ rts, perfil, quimico, showToast, onMudou }: { rts: 
               <div className="fin-table">
                 {despesas.map((l) => (
                   <div key={l.id}>
-                    <span><b>{l.description}</b><small>{CATEGORIAS[l.category ?? "outros"]?.rotulo ?? l.category}{l.comprovante ? <> · <Paperclip size={12} /> comprovante</> : " · sem comprovante"}</small></span>
+                    <span><b>{l.description}</b><small>{CATEGORIAS[l.category ?? "outros"]?.rotulo ?? l.category}{l.comprovante ? <> · <button type="button" className="link-inline" onClick={() => void verComprovante(l)}><Paperclip size={12} /> ver comprovante</button></> : " · sem comprovante"}</small></span>
                     <span><b>{dataBr(l.pagoEm ?? l.vencimento)}</b><small>pagamento</small></span>
                     <span className="fin-valor">{reais(l.valor)}</span>
                     <span className={`status ${l.deductible ? "recebido" : "neutro"}`}>{l.deductible ? "Dedutível" : "Não dedutível"}</span>
@@ -420,7 +420,7 @@ export function Financeiro({ rts, perfil, quimico, showToast, onMudou }: { rts: 
             <p className="fin-aviso"><Info size={18} /> Você recebe pela sua empresa, então o carnê-leão não se aplica: os impostos saem na empresa (Simples ou outro regime). No imposto de renda da pessoa física entram o pró-labore e os lucros que o contador informar.</p>
           ) : (
             <>
-              {regime === null && <p className="fin-aviso"><Info size={18} /> Informe em Configurações se você recebe no CPF ou pela sua empresa. A conta abaixo vale para quem recebe no CPF.</p>}
+              {regime === null && <p className="fin-aviso"><Info size={18} /> Informe em "Perfil e configurações" (clique no seu nome, no canto superior direito) se você recebe no CPF ou pela sua empresa. A conta abaixo vale para quem recebe no CPF.</p>}
               <div className="fin-mes"><Field label="Mês"><input type="month" value={mes} onChange={(e) => setMes(e.target.value || mesAtual())} /></Field></div>
               <dl className="fin-calc">
                 <div><dt>Recebido de pessoas físicas</dt><dd>{reais(carne.calculo.rendimentos)}</dd></div>

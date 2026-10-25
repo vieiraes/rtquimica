@@ -47,3 +47,42 @@ export function textoComunicacao(d: DadosComunicacao): string {
     d.quimico.crq ? `CRQ ${d.quimico.crq}` : "CRQ [informar]",
   ].join("\n");
 }
+
+/** Em que ponto está a comunicação ao CRQ de uma RT (as colunas do quadro) */
+export type EtapaCrq = "comunicar-inicio" | "inicio-comunicado" | "comunicar-encerramento" | "encerramento-comunicado";
+
+export const ETAPAS_CRQ: Array<{ id: EtapaCrq; titulo: string; dica: string }> = [
+  { id: "comunicar-inicio", titulo: "Comunicar início", dica: "RT nova: comunique ao CRQ em até 24 horas." },
+  { id: "inicio-comunicado", titulo: "Início comunicado", dica: "RT em andamento, comunicação feita." },
+  { id: "comunicar-encerramento", titulo: "Comunicar encerramento", dica: "RT encerrada: comunique a baixa ao CRQ." },
+  { id: "encerramento-comunicado", titulo: "Encerramento comunicado", dica: "Ciclo completo." },
+];
+
+export function etapaCrq(rt: { status: string; crqInicioEm?: string | null; crqFimEm?: string | null }): EtapaCrq {
+  if (rt.status === "Cancelada") return rt.crqFimEm ? "encerramento-comunicado" : "comunicar-encerramento";
+  return rt.crqInicioEm ? "inicio-comunicado" : "comunicar-inicio";
+}
+
+/** Dias desde o cadastro de uma RT com início ainda não comunicado (o prazo do CRQ é de 24 horas) */
+export function diasSemComunicar(rt: { criadoEm?: string; crqInicioEm?: string | null }, agora = Date.now()): number | null {
+  if (rt.crqInicioEm || !rt.criadoEm) return null;
+  return Math.floor((agora - new Date(rt.criadoEm).getTime()) / 86_400_000);
+}
+
+/** O que acontece ao mover um cartão do quadro de uma etapa para outra (como as transições do Jira) */
+export type TransicaoCrq =
+  | { tipo: "comunicar"; comunicacao: TipoComunicacao }
+  | { tipo: "desfazer"; comunicacao: TipoComunicacao }
+  | { tipo: "encerrar" }
+  | { tipo: "bloqueada"; motivo: string };
+
+export function transicaoCrq(de: EtapaCrq, para: EtapaCrq): TransicaoCrq | null {
+  if (de === para) return null;
+  if (de === "comunicar-inicio" && para === "inicio-comunicado") return { tipo: "comunicar", comunicacao: "inicio" };
+  if (de === "inicio-comunicado" && para === "comunicar-inicio") return { tipo: "desfazer", comunicacao: "inicio" };
+  if ((de === "comunicar-inicio" || de === "inicio-comunicado") && para === "comunicar-encerramento") return { tipo: "encerrar" };
+  if (de === "comunicar-encerramento" && para === "encerramento-comunicado") return { tipo: "comunicar", comunicacao: "encerramento" };
+  if (de === "encerramento-comunicado" && para === "comunicar-encerramento") return { tipo: "desfazer", comunicacao: "encerramento" };
+  if (para === "encerramento-comunicado") return { tipo: "bloqueada", motivo: "Primeiro encerre a RT (coluna \"Comunicar encerramento\") e depois comunique o encerramento." };
+  return { tipo: "bloqueada", motivo: "RT encerrada não volta a ficar ativa. Para assumir a empresa de novo, cadastre uma nova RT." };
+}

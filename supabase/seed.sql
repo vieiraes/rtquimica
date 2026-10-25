@@ -43,6 +43,12 @@ values
   ('d4444444-4444-4444-4444-444444444444', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '22222222-2222-2222-2222-222222222222', 'Verde Ciclo Efluentes', '09.441.875/0001-31', 'TRT', 'TRT-2025-0672', current_date - 245, current_date + 120, 'active', 'CRQ-IV')
 on conflict (id) do nothing;
 
+-- Comunicação ao CRQ: BioLab e Verde Ciclo já comunicadas (com protocolo); Aqua Pura e QuimNova ainda pendentes
+update public.technical_responsibilities set crq_start_communicated_at = now() - interval '280 days', crq_start_protocol = '2026/004512'
+where id in ('d1111111-1111-1111-1111-111111111111', 'd4444444-4444-4444-4444-444444444444');
+update public.alerts set is_read = true
+where type = 'comunicacao_pendente' and rt_id in ('d1111111-1111-1111-1111-111111111111', 'd4444444-4444-4444-4444-444444444444');
+
 -- RTs para João (Tenant B)
 insert into public.technical_responsibilities (id, tenant_id, user_id, company_name, company_cnpj, document_type, document_number, start_date, end_date, status, crq_region)
 values
@@ -78,12 +84,4 @@ values
   ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '22222222-2222-2222-2222-222222222222', 'despesa', null, null, null, null, 'deslocamento', false, 'Combustível das visitas', 32000, 0, current_date - 2, current_date - 2),
   ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '44444444-4444-4444-4444-444444444444', 'receita', 'd3333333-3333-3333-3333-333333333333', 'pj', 'QuimNova Indústria', '43.981.275/0001-08', null, false, 'Nota fiscal de serviços de RT', 210000, 0, current_date - 8, current_date - 8);
 
--- Templates de POP (Global = tenant_id null)
-insert into public.sop_templates (tenant_id, title, segment, content)
-values
-  (null, 'Coleta de amostras de água', 'Coleta de Amostras', 'Padroniza identificação, preservação, transporte e cadeia de custódia.'),
-  (null, 'Calibração de pHmetro', 'Calibração', 'Rotina de verificação, calibração e registro para medidores de pH.'),
-  (null, 'Controle de qualidade interno', 'Controle de Qualidade', 'Define controles, critérios de aceitação e tratamento de desvios.'),
-  (null, 'Gestão de resíduos químicos', 'Segurança', 'Segregação, acondicionamento, rotulagem e destinação de resíduos.'),
-  (null, 'Operação de sistema de efluentes', 'Efluentes', 'Procedimentos operacionais e parâmetros críticos da estação.'),
-  (null, 'Resposta a derramamentos', 'Segurança', 'Ações imediatas, contenção, limpeza e documentação do incidente.');
+-- Modelos de POP: vêm da migration 20261025100000_biblioteca_pops.sql
