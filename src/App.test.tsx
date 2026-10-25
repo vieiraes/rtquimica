@@ -12,7 +12,7 @@ const abrirDemo = () => fireEvent.click(screen.getByRole("button", { name: "Abri
 describe("App em modo demonstração", () => {
   it("a landing é só apresentação: história em grade (jsdom não tem WebGL) e nenhum formulário de login", () => {
     render(<App />);
-    expect(screen.getByRole("heading", { level: 1 }).textContent).toContain("Suas RTs organizadas");
+    expect(screen.getByRole("heading", { level: 1 }).textContent).toContain("protege a sua assinatura");
     expect(document.querySelector(".historia")?.getAttribute("data-palco")).toBe("nao");
     expect(document.querySelectorAll(".capitulos-grade > li")).toHaveLength(6);
     expect(document.querySelector('input[type="password"]')).toBeNull();
