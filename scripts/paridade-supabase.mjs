@@ -119,7 +119,7 @@ const varrer = (dir) => {
   }
 };
 varrer(path.join(RAIZ, "supabase/functions"));
-const PENDENTES = { KIWIFY_WEBHOOK_SECRET: "cobrança desligada até a Kiwify (docs/COBRANCA_KIWIFY.md)" };
+const PENDENTES = {};
 for (const nome of exigidos) {
   if (segredos.has(nome)) continue;
   if (PENDENTES[nome]) avisos.push(`secret ${nome} ainda não existe no remoto: ${PENDENTES[nome]}`);

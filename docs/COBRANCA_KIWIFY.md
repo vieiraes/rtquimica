@@ -1,12 +1,12 @@
 # Cobrança pela Kiwify
 
-O RTQuímico cobra **por escritório**: quem assina é o titular, e a assinatura vale para toda a equipe dele. O plano é um só (R$ 79/mês), com 7 dias de teste grátis contados da criação da conta.
+O RTQuímico cobra **por escritório**: quem assina é o titular, e a assinatura vale para toda a equipe dele. O plano é um só (R$ 79,90/mês), com 7 dias de teste grátis contados da criação da conta.
 
-**Hoje a cobrança está desligada.** Ela só passa a valer quando o link do checkout estiver configurado (passo 3). Até lá ninguém é bloqueado.
+**Cobrança ligada em produção desde 25/10/2026:** produto "RTQuímico Profissional" (R$ 79,90/mês), checkout `https://pay.kiwify.com.br/KOOHUlK` no `.env.production`, webhook criado na Kiwify e `KIWIFY_WEBHOOK_SECRET` nos secrets do Supabase (cópia no `.env.local`).
 
 ## Como funciona
 
-1. O titular clica em **Assinatura → "Assinar por R$ 79/mês"**. O link abre o checkout da Kiwify com o e-mail dele preenchido e com o código do escritório (`sck=<id do escritório>`).
+1. O titular clica em **Assinatura → "Assinar por R$ 79,90/mês"**. O link abre o checkout da Kiwify com o e-mail dele preenchido e com o código do escritório (`sck=<id do escritório>`).
 2. A Kiwify avisa o RTQuímico pelo webhook `supabase/functions/kiwify-webhook`, conforme o evento:
    - compra aprovada ou renovada: o escritório fica **ativo** até a próxima cobrança;
    - pagamento atrasado: fica **pendente**, com 5 dias de tolerância;
@@ -18,7 +18,7 @@ O RTQuímico cobra **por escritório**: quem assina é o titular, e a assinatura
 
 ## O que você precisa fazer (uma vez)
 
-1. **Criar o produto na Kiwify**: assinatura mensal de R$ 79, nome "RTQuímico Profissional". Copie o link do checkout (algo como `https://pay.kiwify.com.br/XXXXXXX`).
+1. **Criar o produto na Kiwify**: assinatura mensal de R$ 79,90, nome "RTQuímico Profissional". Copie o link do checkout (algo como `https://pay.kiwify.com.br/XXXXXXX`).
 2. **Criar o webhook na Kiwify** (Apps → Webhooks):
    - URL: `https://qbmocwoqkqazoclmxmsh.supabase.co/functions/v1/kiwify-webhook`
    - eventos: compra aprovada, assinatura renovada, assinatura atrasada, assinatura cancelada, compra reembolsada e chargeback;

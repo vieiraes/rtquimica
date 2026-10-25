@@ -36,7 +36,7 @@ export function Assinatura({ assinatura, titular, email, tenantId, onAtualizar }
         {titular ? (
           checkoutUrl && tenantId ? (
             <div className="assinatura-acoes">
-              {!ativa && <a className="button primary large" href={linkCheckout(checkoutUrl, email, tenantId)} target="_blank" rel="noopener noreferrer"><CreditCard size={18} /> Assinar por R$ 79/mês</a>}
+              {!ativa && <a className="button primary large" href={linkCheckout(checkoutUrl, email, tenantId)} target="_blank" rel="noopener noreferrer"><CreditCard size={18} /> Assinar por R$ 79,90/mês</a>}
               <button className="button secondary" onClick={onAtualizar}><RefreshCw size={16} /> Já paguei, atualizar</button>
             </div>
           ) : <p className="form-hint">A assinatura ainda não está aberta: o uso do RTQuímico está liberado.</p>
@@ -45,7 +45,7 @@ export function Assinatura({ assinatura, titular, email, tenantId, onAtualizar }
       </article>
       <article className="panel assinatura-plano">
         <span className="category">PLANO PROFISSIONAL</span>
-        <p className="pricing-price">R$ 79<small>/mês</small></p>
+        <p className="pricing-price">R$ 79,90<small>/mês</small></p>
         <ul>{INCLUI.map((i) => <li key={i}><CheckCircle2 size={17} /> {i}</li>)}</ul>
       </article>
     </section>

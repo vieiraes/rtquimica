@@ -172,7 +172,7 @@ export function Landing() {
         </div>
         <div className="pricing-card">
           <span>Profissional</span>
-          <p className="pricing-price">R$ 79<small>/mês</small></p>
+          <p className="pricing-price">R$ 79,90<small>/mês</small></p>
           <ul>
             <li><CheckCircle2 size={17} /> Até 6 responsabilidades técnicas ativas</li>
             <li><CheckCircle2 size={17} /> Quadro do CRQ e alertas de vigência na Google Agenda</li>
