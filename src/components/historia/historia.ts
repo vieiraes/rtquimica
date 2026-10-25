@@ -144,7 +144,9 @@ export function pinos(): Pino[] {
   const sobre = (x: Empresa, extra = 0): Vec3 => [x.x, x.topo + 0.4 + extra, x.z];
   return [
     ...EMPRESAS.map((x) => ({ id: `empresa-${x.id}`, texto: x.nome, capitulo: 0, pos: sobre(x) })),
+    { id: "radar", texto: "Leitura do dia · Radar regulatório", capitulo: 0, pos: [0, ESCRITORIO.topo + 2.8, ESCRITORIO.z], tom: "destaque" },
     { id: "visita", texto: "Visita registrada · Cosmética Lume", capitulo: 1, pos: sobre(e.cosmetica, 0.6), tom: "destaque" },
+    { id: "ia", texto: "Registro formal redigido com IA", capitulo: 1, pos: [-6.2, 2.4, 1.5] },
     { id: "diario", texto: "Diário técnico · 08:42", capitulo: 1, pos: [-4, 1.9, 1.5] },
     { id: "laudo", texto: "Laudo emitido · Tintas Alfa", capitulo: 2, pos: [0, ESCRITORIO.topo + 1.6, ESCRITORIO.z], tom: "destaque" },
     { id: "analise", texto: "Análise concluída", capitulo: 2, pos: [-1.1, 2.3, ESCRITORIO.z + 1.4] },
@@ -152,7 +154,9 @@ export function pinos(): Pino[] {
     { id: "alerta", texto: "Alerta no painel · lembrete na agenda", capitulo: 3, pos: [e.aqua.x + 1.1, 4.3, e.aqua.z - 2.6] },
     { id: "fispq", texto: `${TOTAL_TAMBORES}/${TOTAL_TAMBORES} tambores rotulados`, capitulo: 4, pos: [PATIO_TAMBORES.x, 4.9, PATIO_TAMBORES.z], tom: "destaque" },
     { id: "checklist", texto: "Checklist de conformidade · 100%", capitulo: 4, pos: sobre(e.distrib, 0.2) },
-    { id: "crq", texto: "4 RTs em dia · CRQ comunicado", capitulo: 5, pos: [0, ESCRITORIO.topo + 1.2, ESCRITORIO.z], tom: "destaque" },
+    { id: "pop", texto: "POP com NBR 14725 e NR-20", capitulo: 4, pos: sobre(e.distrib, 1.1) },
+    { id: "crq", texto: "Quadro do CRQ · protocolo registrado", capitulo: 5, pos: [0, ESCRITORIO.topo + 1.2, ESCRITORIO.z], tom: "destaque" },
+    { id: "carne", texto: "Carnê-leão do mês calculado", capitulo: 5, pos: [-2.6, ESCRITORIO.topo + 0.6, ESCRITORIO.z] },
     ...EMPRESAS.map((x) => ({ id: `conforme-${x.id}`, texto: "Conforme", capitulo: 5, pos: sobre(x, 0.2) })),
   ];
 }
