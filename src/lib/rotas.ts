@@ -12,6 +12,7 @@ export const ROTAS: Record<Page, string> = {
   pops: "/pops",
   financeiro: "/financeiro",
   radar: "/radar",
+  assinatura: "/assinatura",
   plataforma: "/plataforma",
   equipe: "/equipe",
   perfil: "/configuracoes",

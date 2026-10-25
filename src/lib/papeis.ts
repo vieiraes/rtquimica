@@ -18,8 +18,8 @@ const PAGINAS_DO_QUIMICO: Page[] = ["dashboard", "rts", "alertas", "radar", "aco
 const PAGINAS: Record<Papel, Page[]> = {
   // Gestor do RTQuímico: não é químico, não abre o painel de RTs; cuida de quem usa a plataforma
   superadmin: ["plataforma", "perfil"],
-  tenant_admin: [...PAGINAS_DO_QUIMICO, "equipe", "perfil"],
-  tenant_member: [...PAGINAS_DO_QUIMICO, "perfil"],
+  tenant_admin: [...PAGINAS_DO_QUIMICO, "equipe", "assinatura", "perfil"],
+  tenant_member: [...PAGINAS_DO_QUIMICO, "assinatura", "perfil"],
   tenant_external_client: ["perfil"],
 };
 
@@ -39,5 +39,8 @@ export function paginaInicial(papel: Papel | null): Page {
 
 /** Empresa contratante: papel guardado para o futuro, sem acesso ao painel por enquanto. */
 export const acessoDesligado = (papel: Papel | null) => papel === "tenant_external_client";
+
+/** Com a assinatura bloqueada, o químico só abre estas páginas (os dados ficam guardados). */
+export const PAGINAS_SEM_ASSINATURA: Page[] = ["assinatura", "perfil"];
 
 export const ehQuimico = (papel: Papel | null) => papel !== "superadmin" && papel !== "tenant_external_client";

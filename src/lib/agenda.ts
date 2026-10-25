@@ -1,11 +1,9 @@
 // Chamadas à Edge Function google-agenda (conectar, sincronizar, desconectar).
+import { chamarFuncao } from "./funcoes";
 import { supabase } from "./supabase";
 
 export async function chamarAgenda<T = unknown>(acao: "conectar" | "sincronizar" | "desconectar"): Promise<T> {
-  if (!supabase) throw new Error("sem Supabase");
-  const { data, error } = await supabase.functions.invoke("google-agenda", { body: { acao } });
-  if (error) throw error;
-  return data as T;
+  return chamarFuncao<T>("google-agenda", { acao });
 }
 
 /** Depois de mudar RT ou honorário: atualiza a agenda do Google em segundo plano (sem conexão, a função só responde que não está conectada). */

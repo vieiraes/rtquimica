@@ -7,6 +7,7 @@ export type Page =
   | "pops"
   | "financeiro"
   | "radar"
+  | "assinatura"
   | "plataforma"
   | "equipe"
   | "perfil";

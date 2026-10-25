@@ -311,7 +311,7 @@ h1, h2, h3, .brand { font-family: "Manrope", sans-serif; }
 .table-empty { margin: 0; padding: 28px 20px; color: var(--muted); text-align: center; }
 .table-note { margin: 0; padding: 14px 20px 18px; color: var(--muted); font-size: 13px; border-top: 1px solid var(--border); }
 .office-table { padding: 4px 20px 15px; }
-.office-table > div { min-height: 60px; display: grid; grid-template-columns: auto 1.4fr auto 1fr 1fr; gap: 12px; align-items: center; border-bottom: 1px solid var(--border); font-size: 13px; }
+.office-table > div { min-height: 60px; display: grid; grid-template-columns: auto 1.4fr auto 1fr 1fr 40px; gap: 12px; align-items: center; border-bottom: 1px solid var(--border); font-size: 13px; }
 .office-table > div:last-child { border: 0; }
 .office-table > div > span:not(.avatar):not(.plan-chip) { color: var(--muted); }
 .loading-strip.erro { color: var(--red); background: var(--red-soft); }
@@ -479,3 +479,19 @@ label.upload-zone:focus-within { outline: 3px solid rgba(11, 58, 99, .35); outli
 .ocr-linha { grid-column: 1 / -1; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .ocr-linha small { color: var(--muted); font-size: 13px; }
 .ocr-mensagem { color: var(--green-strong); font-weight: 600; }
+
+/* Assinatura */
+.faixa-assinatura { width: 100%; margin-bottom: 16px; padding: 11px 14px; display: block; color: var(--primary); background: var(--blue-soft); border: 1px solid var(--border); border-radius: 11px; font-size: 14px; font-weight: 700; text-align: left; cursor: pointer; }
+.assinatura-grid { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+.assinatura-status { padding-bottom: 20px; }
+.assinatura-status > :not(.panel-header) { margin-left: 20px; margin-right: 20px; }
+.assinatura-status.bloqueada { border-color: rgba(180, 35, 24, .35); }
+.assinatura-dados { margin-top: 16px; }
+.assinatura-status .fin-aviso { margin-top: 14px; }
+.assinatura-acoes { margin-top: 16px; display: flex; gap: 10px; flex-wrap: wrap; }
+.assinatura-status .form-hint { margin-top: 12px; }
+.assinatura-plano { padding: 24px; display: grid; gap: 10px; }
+.assinatura-plano ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; font-size: 14px; }
+.assinatura-plano li { display: flex; gap: 8px; align-items: flex-start; line-height: 1.45; }
+.assinatura-plano li svg { flex: none; color: var(--green); margin-top: 2px; }
+@media (max-width: 900px) { .assinatura-grid { grid-template-columns: 1fr; } }

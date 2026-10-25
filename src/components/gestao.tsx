@@ -23,7 +23,17 @@ interface Escritorio {
   id: string;
   name: string;
   plan: string;
+  subscription_status?: string;
+  trial_ends_at?: string | null;
+  paid_until?: string | null;
 }
+
+const ROTULO_ASSINATURA: Record<string, string> = { trial: "Teste", active: "Ativa", past_due: "Pagamento pendente", canceled: "Cancelada" };
+const assinaturaDe = (e: Escritorio) => {
+  const status = e.subscription_status ?? "trial";
+  const data = status === "trial" ? e.trial_ends_at : e.paid_until;
+  return `${ROTULO_ASSINATURA[status] ?? status}${data ? ` até ${new Date(data).toLocaleDateString("pt-BR")}` : ""}`;
+};
 
 const ROTULO_PLANO: Record<string, string> = { basic: "Básico", pro: "Profissional", enterprise: "Empresarial" };
 
@@ -76,7 +86,7 @@ export function Plataforma({ showToast }: { showToast: (m: string) => void }) {
     {
       const [perfis, tenants, rts] = await Promise.all([
         client.from("profiles").select("id, name, email, role, crq_number, crq_state, created_at, active, tenant_id, tenants(name, plan)").order("created_at", { ascending: false }),
-        client.from("tenants").select("id, name, plan").order("name"),
+        client.from("tenants").select("id, name, plan, subscription_status, trial_ends_at, paid_until").order("name"),
         client.from("technical_responsibilities").select("tenant_id, status"),
       ]);
       const falha = perfis.error ?? tenants.error ?? rts.error;
@@ -170,9 +180,10 @@ export function Plataforma({ showToast }: { showToast: (m: string) => void }) {
                 <div key={e.id}>
                   <span className="avatar small">{iniciais(e.name)}</span>
                   <b>{e.name}</b>
-                  <span className="plan-chip">{ROTULO_PLANO[e.plan] ?? e.plan}</span>
+                  <span className="plan-chip">{assinaturaDe(e)}</span>
                   <span>{plural(usuarios.filter((u) => u.tenant_id === e.id).length, "usuário", "usuários")}</span>
                   <span>{rts.ativas} de {rts.total} RTs ativas</span>
+                  {supabase ? <MenuAcoes rotulo={e.name} acoes={[{ texto: "Liberar 30 dias de assinatura", fazer: () => void agir({ acao: "liberar_escritorio", tenant_id: e.id }, `${e.name} liberado por 30 dias.`) }]} /> : <span />}
                 </div>
               );
             })}

@@ -2,6 +2,7 @@ import {
   Bell,
   BookOpen,
   ClipboardCheck,
+  CreditCard,
   FileText,
   LayoutDashboard,
   LogOut,
@@ -32,6 +33,7 @@ const nav: Array<{ id: Page; label: string; icon: typeof Bell }> = [
 ];
 const navConta: Array<{ id: Page; label: string; icon: typeof Bell }> = [
   { id: "equipe", label: "Equipe", icon: UsersRound },
+  { id: "assinatura", label: "Assinatura", icon: CreditCard },
   { id: "perfil", label: "Configurações", icon: Settings },
 ];
 
@@ -45,6 +47,7 @@ const pageTitles: Record<Page, { eyebrow: string; title: string; description: st
   checklist: { eyebrow: "CRQ-IV • São Paulo", title: "Checklist de conformidade", description: "Revise as exigências e acompanhe a evolução de cada empresa." },
   pops: { eyebrow: "Modelos editáveis", title: "Biblioteca de POPs", description: "Parta de procedimentos estruturados e adapte à sua operação." },
   radar: { eyebrow: "Sempre informado", title: "Radar regulatório", description: "Novidades do CFQ, do CRQ, do CONAMA, do MMA e do Ibama num lugar só." },
+  assinatura: { eyebrow: "Seu escritório", title: "Assinatura", description: "Situação do plano do escritório e pagamento." },
   financeiro: { eyebrow: "Suas finanças", title: "Financeiro", description: "Honorários, despesas dedutíveis, carnê-leão e o resumo para o imposto de renda." },
   plataforma: { eyebrow: "Gestão do produto", title: "Usuários da plataforma", description: "Quem usa o RTQuímico: químicos e escritórios." },
   equipe: { eyebrow: "Seu escritório", title: "Equipe", description: "Pessoas com acesso ao workspace do escritório." },
@@ -76,6 +79,7 @@ export function Sidebar({
   atrasados,
   radarNovas,
   papel,
+  restringir,
 }: {
   page: Page;
   open: boolean;
@@ -90,8 +94,10 @@ export function Sidebar({
   atrasados: number;
   radarNovas: number;
   papel: Papel | null;
+  /** Assinatura bloqueada: só estas páginas aparecem no menu */
+  restringir?: Page[];
 }) {
-  const permitidas = paginasDoPapel(papel);
+  const permitidas = paginasDoPapel(papel).filter((p) => !restringir || restringir.includes(p));
   const item = ({ id, label, icon: Icon }: (typeof nav)[number]) => (
     <button key={id} className={page === id ? "active" : ""} onClick={() => onNavigate(id)}>
       <Icon size={19} />

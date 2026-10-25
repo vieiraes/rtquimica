@@ -45,8 +45,8 @@ export function GoogleAgenda({ showToast }: { showToast: (m: string) => void }) 
     try {
       const { url } = await chamarAgenda<{ url: string }>("conectar");
       window.location.assign(url);
-    } catch {
-      showToast("Não consegui abrir o login do Google.");
+    } catch (erro) {
+      showToast(erro instanceof Error ? erro.message : "Não consegui abrir o login do Google.");
       setOcupado("");
     }
   };

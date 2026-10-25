@@ -405,3 +405,7 @@ s3_secret_key = "env(S3_SECRET_KEY)"
 # Volta do login do Google: o navegador chega sem JWT; quem prova o usuário é o "state" do OAuth
 [functions.google-retorno]
 verify_jwt = false
+
+# Webhook da Kiwify: chega sem JWT; a prova é o segredo KIWIFY_WEBHOOK_SECRET (token ou assinatura HMAC)
+[functions.kiwify-webhook]
+verify_jwt = false

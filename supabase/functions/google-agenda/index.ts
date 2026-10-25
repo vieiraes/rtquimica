@@ -20,6 +20,10 @@ Deno.serve(async (req) => {
   const { acao } = await req.json().catch(() => ({ acao: null }));
   try {
     if (acao === "conectar") {
+      // Sem o OAuth criado no Google Cloud (docs/GOOGLE_AGENDA.md), diz isso em vez de falhar no meio
+      if (!Deno.env.get("GOOGLE_CLIENT_ID") || !Deno.env.get("GOOGLE_CLIENT_SECRET")) {
+        return resposta(503, { erro: "A conexão com o Google Agenda ainda não está disponível. Ela é liberada assim que o RTQuímico for aprovado pelo Google." });
+      }
       await db.from("google_oauth_states").delete().lt("created_at", new Date(Date.now() - 10 * 60_000).toISOString());
       const { data: estado, error } = await db.from("google_oauth_states").insert({ user_id: user.id }).select("state").single();
       if (error) throw error;

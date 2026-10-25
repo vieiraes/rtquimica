@@ -6,6 +6,9 @@ values
   ('cccccccc-cccc-cccc-cccc-cccccccccccc', 'RTQuímico (gestão do produto)', 'enterprise')
 on conflict (id) do nothing;
 
+-- Assinatura (Kiwify): escritório da Mariana pago por 30 dias; o do João em teste grátis (7 dias, padrão da tabela)
+update public.tenants set subscription_status = 'active', paid_until = now() + interval '30 days' where id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
+
 -- Um login por papel (senha 123456): superadmin@ = gestão do produto; mariana@ = titular do escritório A (tenant_admin);
 -- carla@ = química da equipe da Mariana (tenant_member). Empresa contratante (tenant_external_client) está sem login: o produto atende só químicos.
 -- joao@ = titular de outro escritório (B), para testar o isolamento entre tenants.

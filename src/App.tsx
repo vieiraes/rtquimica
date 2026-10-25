@@ -17,9 +17,11 @@ import { Alerts, Compliance, Dashboard, Profile, Responsibilities, TechnicalDiar
 import { Financeiro } from "./components/financeiro";
 import { GoogleAgenda } from "./components/google-agenda";
 import { Radar } from "./components/radar";
+import { Assinatura } from "./components/assinatura";
+import { cobrancaAtiva, situacao, type Assinatura as DadosAssinatura } from "./lib/assinatura";
 import { atualizarAgendaEmSegundoPlano } from "./lib/agenda";
 import { Equipe, GestaoIa, Plataforma } from "./components/gestao";
-import { acessoDesligado, ehQuimico, papelDe, paginaInicial, paginasDoPapel, ROTULO_PAPEL } from "./lib/papeis";
+import { acessoDesligado, ehQuimico, PAGINAS_SEM_ASSINATURA, papelDe, paginaInicial, paginasDoPapel, ROTULO_PAPEL } from "./lib/papeis";
 import type { ActionInsertPayload, Alert, AuthPayload, Page, RT, RtInsertPayload, TechnicalAction } from "./types";
 import type { Session } from "@supabase/supabase-js";
 
@@ -56,6 +58,7 @@ function App() {
   const [perfilFalhou, setPerfilFalhou] = useState(false);
   const [honorariosAtrasados, setHonorariosAtrasados] = useState(isSupabaseConfigured ? 0 : 1);
   const [radarNovas, setRadarNovas] = useState(isSupabaseConfigured ? 0 : 3);
+  const [assinatura, setAssinatura] = useState<DadosAssinatura | null>(null);
 
   // Objeto estável: o Financeiro recarrega quando o perfil muda, não a cada render do App
   const perfilFinanceiro = useMemo(
@@ -102,6 +105,7 @@ function App() {
         setProfile(perfil);
         const papel = papelDe(perfil.role);
         if (!ehQuimico(papel)) return;
+        void carregarAssinatura(perfil.tenant_id);
 
         const [rtsResult, checklistsResult] = await Promise.all([
           client.from("technical_responsibilities").select("*").order("created_at", { ascending: false }),
@@ -134,6 +138,13 @@ function App() {
 
     void loadData();
   }, [session, showToast]);
+
+  // Assinatura do escritório (Kiwify): situação, fim do teste e até quando está pago
+  async function carregarAssinatura(tenantId: string) {
+    if (!supabase) return;
+    const { data } = await supabase.from("tenants").select("subscription_status, trial_ends_at, paid_until").eq("id", tenantId).maybeSingle();
+    if (data) setAssinatura({ status: data.subscription_status, trialEndsAt: data.trial_ends_at, paidUntil: data.paid_until });
+  }
 
   // Honorários vencidos e não recebidos: badge no menu Financeiro
   async function contarAtrasados() {
@@ -179,14 +190,18 @@ function App() {
   const quimico = ehQuimico(papel);
   const subtitulo = !isSupabaseConfigured ? "Modo demonstração" : quimico && crq ? `CRQ ${crq}` : papel ? ROTULO_PAPEL[papel] : "";
   const perfilCarregado = !isSupabaseConfigured || profile !== null;
+  // Cobrança só vale com o checkout da Kiwify configurado; sem pagamento, só Assinatura e Configurações
+  const estadoAssinatura = situacao(assinatura);
+  const bloqueado = cobrancaAtiva() && ehQuimico(papel) && !estadoAssinatura.liberado;
 
   // Página fora do papel (ex.: superadmin em /painel, empresa em /diario) vai para a inicial do papel;
   // logado numa URL que não é do painel (ex.: "/" da landing), fixa a URL da página atual.
   useEffect(() => {
     if (!loggedIn || !perfilCarregado || caminho === ROTA_DEFINIR_SENHA) return;
     if (!paginasDoPapel(papel).includes(page)) substituir(paginaInicial(papel));
+    else if (bloqueado && !PAGINAS_SEM_ASSINATURA.includes(page)) substituir("assinatura");
     else if (paginaDaUrl(window.location.pathname) === null) substituir(page);
-  }, [loggedIn, page, perfilCarregado, papel, substituir, caminho]);
+  }, [loggedIn, page, perfilCarregado, papel, substituir, caminho, bloqueado]);
 
   const handleAuth = async (payload: AuthPayload) => {
     if (!supabase) {
@@ -490,6 +505,7 @@ function App() {
         unread={alerts.filter((alert) => !alert.read).length}
         atrasados={honorariosAtrasados}
         radarNovas={radarNovas}
+        restringir={bloqueado ? PAGINAS_SEM_ASSINATURA : undefined}
         papel={papel}
       />
       <div className="main-column">
@@ -505,6 +521,9 @@ function App() {
         />
         <main className="page">
           {dataLoading && <div className="loading-strip">Sincronizando seus dados...</div>}
+          {cobrancaAtiva() && ehQuimico(papel) && page !== "assinatura" && (estadoAssinatura.diasTeste !== null || assinatura?.status === "past_due") && (
+            <button className="faixa-assinatura" onClick={() => goTo("assinatura")}>{estadoAssinatura.mensagem} {papel === "tenant_admin" ? "Assinar agora" : "Fale com o titular"}</button>
+          )}
           <PageHeading page={page} name={displayName} onPrimary={() => setModal(page === "acoes" ? "action" : "rt")} />
           {page === "dashboard" && <Dashboard rts={rts} alerts={alerts} onNavigate={goTo} onNewRt={() => setModal("rt")} />}
           {page === "rts" && <Responsibilities rts={rts} onNew={() => setModal("rt")} acoes={{ onComunicar: (rt) => setComunicacao({ rt, tipo: rt.status === "Cancelada" ? "encerramento" : "inicio" }), onEncerrar: (rt) => void encerrarRt(rt) }} />}
@@ -514,6 +533,7 @@ function App() {
           {page === "pops" && <Pops rts={rts} tenantId={profile?.tenant_id} showToast={showToast} />}
           {page === "financeiro" && <Financeiro rts={rts} perfil={perfilFinanceiro} quimico={{ nome: displayName, crq }} showToast={showToast} onMudou={() => { void contarAtrasados(); atualizarAgendaEmSegundoPlano(); }} />}
           {page === "radar" && <Radar userId={session?.user.id} showToast={showToast} onMudou={() => session && void contarRadar(session.user.id)} />}
+          {page === "assinatura" && <Assinatura assinatura={assinatura} titular={papel === "tenant_admin"} email={profile?.email ?? null} tenantId={profile?.tenant_id} onAtualizar={() => { if (profile) void carregarAssinatura(profile.tenant_id).then(() => showToast("Situação atualizada.")); }} />}
           {page === "plataforma" && <><Plataforma showToast={showToast} /><GestaoIa showToast={showToast} /></>}
           {page === "equipe" && <Equipe tenantId={profile?.tenant_id} euId={profile?.id} showToast={showToast} />}
           {page === "perfil" && (

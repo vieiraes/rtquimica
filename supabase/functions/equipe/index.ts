@@ -55,6 +55,16 @@ Deno.serve(async (req) => {
     return respostaJson(200, { convidado: email, emailEnviado: !erroEmail });
   }
 
+  // Gestão do produto libera 30 dias de assinatura a um escritório (cortesia ou suporte)
+  if (acao === "liberar_escritorio") {
+    if (!superadmin) return respostaJson(403, { erro: "Só a gestão do produto libera escritórios." });
+    const alvo = String(corpo.tenant_id ?? "");
+    const ate = new Date(Date.now() + 30 * 86_400_000).toISOString();
+    const { data, error } = await db.from("tenants").update({ subscription_status: "active", paid_until: ate }).eq("id", alvo).select("id").maybeSingle();
+    if (error || !data) return respostaJson(404, { erro: "Escritório não encontrado." });
+    return respostaJson(200, { liberado_ate: ate });
+  }
+
   if (acao === "ativar" || acao === "desativar" || acao === "mudar_papel") {
     const alvoId = String(corpo.user_id ?? "");
     if (alvoId === user.id) return respostaJson(400, { erro: "Você não pode mudar o próprio acesso." });
