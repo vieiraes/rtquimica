@@ -6,3 +6,4 @@ dist
 tmp/
 .firebase/
 supabase/.temp/
+dist-ssr

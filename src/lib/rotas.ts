@@ -29,6 +29,16 @@ export const ROTA_TERMOS = "/termos";
 export const ROTA_COOKIES = "/cookies";
 export type TipoLegal = "privacidade" | "termos" | "cookies";
 
+/** Páginas do site público: as únicas indexadas pelo Google e medidas pelo Analytics. O painel fica de fora. */
+export const ROTAS_PUBLICAS = ["/", ROTA_ENTRAR, ROTA_CRIAR_CONTA, ROTA_PRIVACIDADE, ROTA_TERMOS, ROTA_COOKIES] as const;
+export type RotaPublica = (typeof ROTAS_PUBLICAS)[number];
+
+/** A URL é de uma página pública? Aceita a barra final ("/termos/"). */
+export function rotaPublica(caminho: string): RotaPublica | null {
+  const limpo = caminho.length > 1 ? caminho.replace(/\/+$/, "") : caminho;
+  return (ROTAS_PUBLICAS as readonly string[]).includes(limpo) ? (limpo as RotaPublica) : null;
+}
+
 /** Qual página legal é a URL atual (null se não for uma). */
 export function tipoLegal(caminho: string): TipoLegal | null {
   if (caminho === ROTA_PRIVACIDADE) return "privacidade";

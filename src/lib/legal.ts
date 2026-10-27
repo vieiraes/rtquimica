@@ -11,7 +11,7 @@ export const EMPRESA = {
  * Versão dos Termos de Uso e da Política de Privacidade. Mudou o texto de forma relevante? Troque a data:
  * quem aceitou a versão anterior vê o aviso de novo ao entrar.
  */
-export const VERSAO_TERMOS = "2026-10-25";
+export const VERSAO_TERMOS = "2026-10-26";
 
 /** Data da versão por extenso, para o topo das páginas legais. */
-export const VERSAO_TERMOS_EXTENSO = "25 de outubro de 2026";
+export const VERSAO_TERMOS_EXTENSO = "26 de outubro de 2026";

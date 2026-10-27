@@ -58,11 +58,17 @@ function Privacidade() {
         <li>Inteligência artificial: data, tipo de operação e quantidade de texto processado, para controlar o limite mensal.</li>
         <li>Registros técnicos de acesso (endereço IP, data e navegador), mantidos pelos provedores de infraestrutura para segurança.</li>
       </ul>
+      <h3>Contagem de visitas ao site, só se você aceitar</h3>
+      <ul>
+        <li>Se você clicar em "Aceitar" no aviso de cookies, o Google Analytics registra as visitas às páginas públicas (a página inicial, Entrar, Criar conta e estas páginas legais): qual página foi aberta, de onde a visita veio, tipo de aparelho e navegador e cidade aproximada, ligados a um identificador aleatório guardado no seu navegador.</li>
+        <li>O painel (suas RTs, diário, financeiro e o resto do que você cadastra) nunca é medido, e não enviamos ao Google o seu nome, e-mail ou CRQ.</li>
+      </ul>
 
       <h2>2. Para que usamos e com qual base legal</h2>
       <ul>
         <li><b>Prestar o serviço que você contratou</b> (execução de contrato, art. 7º, V): manter sua conta, mostrar prazos e alertas, gerar relatórios, PDFs, o carnê-leão e o guia do IR, sincronizar a Google Agenda quando você pede.</li>
         <li><b>Cobrança da assinatura</b> (execução de contrato): liberar ou suspender o acesso conforme a situação do pagamento.</li>
+        <li><b>Saber como o site é usado</b> (consentimento, art. 7º, I): contar as visitas às páginas públicas, só se você aceitar no aviso de cookies. Você pode retirar o consentimento a qualquer momento em "Preferências de cookies", no rodapé.</li>
         <li><b>Segurança e prevenção de abuso</b> (legítimo interesse, art. 7º, IX): registros de acesso e limites de uso.</li>
         <li><b>Cumprir obrigações legais</b> (art. 7º, II): guardar registros de cobrança e atender a ordens de autoridades.</li>
       </ul>
@@ -77,6 +83,7 @@ function Privacidade() {
         <li><b>Supabase</b>: banco de dados, login, arquivos e funções do servidor. Servidores nos Estados Unidos.</li>
         <li><b>Google Firebase</b>: entrega das páginas do site.</li>
         <li><b>Google</b>: login com o Google e Google Agenda, apenas se você usar esses recursos.</li>
+        <li><b>Google Analytics</b>: contagem de visitas às páginas públicas, apenas se você aceitar no aviso de cookies. Sem publicidade, sem Google Signals e sem compartilhar com outros produtos do Google para anúncios.</li>
         <li><b>DeepSeek</b>: só quando você clica em "Redigir com IA", "Explicar com IA" ou "Gerar rascunho com IA". Vão o texto da sua anotação ou do modelo e o nome, o CNAE e a cidade da empresa; seu nome, e-mail e CPF não vão. Servidores fora do Brasil.</li>
         <li><b>Kiwify</b>: pagamento da assinatura. A compra é feita no site da Kiwify, sob a política dela.</li>
         <li><b>BrasilAPI e CNPJ.ws</b>: o CNPJ que você digita, para preencher os dados públicos da empresa na Receita Federal.</li>
@@ -84,11 +91,12 @@ function Privacidade() {
       </ul>
 
       <h2>5. Transferência internacional</h2>
-      <p>Supabase, Google e DeepSeek processam dados fora do Brasil. A transferência ocorre para executar o contrato com você (art. 33, IX, da LGPD) e com fornecedores que adotam medidas de segurança, como conexão cifrada e controle de acesso.</p>
+      <p>Supabase, Google e DeepSeek processam dados fora do Brasil. A transferência ocorre para executar o contrato com você (art. 33, IX, da LGPD) ou, no caso do Google Analytics, com o seu consentimento (art. 33, VIII), e com fornecedores que adotam medidas de segurança, como conexão cifrada e controle de acesso.</p>
 
       <h2>6. Por quanto tempo guardamos</h2>
       <ul>
         <li>Enquanto a sua conta existir.</li>
+        <li>Contagem de visitas: até 14 meses no Google Analytics; o identificador no seu navegador vale 13 meses ou até você recusar ou limpar os dados do site.</li>
         <li>Depois do pedido de exclusão, apagamos os dados em até 30 dias, exceto os registros de cobrança, guardados pelo prazo que a lei exigir.</li>
         <li>Se a assinatura acabar e você não pedir a exclusão, os dados ficam guardados para quando você voltar, e você pode pedir a exclusão a qualquer momento.</li>
       </ul>
@@ -106,7 +114,7 @@ function Privacidade() {
       <p>Cada escritório só enxerga os próprios dados (isolamento no banco de dados), documentos e fotos ficam em pastas privadas, toda conexão é cifrada (HTTPS) e as autorizações do Google ficam só no servidor. Nenhum sistema é totalmente imune; se houver um incidente que possa causar risco relevante, avisamos você e a ANPD.</p>
 
       <h2>9. Cookies</h2>
-      <p>Usamos apenas armazenamento essencial no navegador. Os detalhes estão na <LinkInterno to={ROTA_COOKIES}>Política de Cookies</LinkInterno>.</p>
+      <p>Usamos o armazenamento essencial no navegador e, só com o seu consentimento, os cookies do Google Analytics. Os detalhes estão na <LinkInterno to={ROTA_COOKIES}>Política de Cookies</LinkInterno>.</p>
 
       <h2>10. Menores de idade</h2>
       <p>O serviço é destinado a profissionais da Química maiores de 18 anos.</p>
@@ -181,31 +189,44 @@ function Termos() {
 function Cookies() {
   return (
     <>
-      <p>Cookies e armazenamento local são pequenos dados que um site guarda no seu navegador. O {EMPRESA.produto} usa apenas o essencial para funcionar.</p>
+      <p>Cookies e armazenamento local são pequenos dados que um site guarda no seu navegador. O {EMPRESA.produto} usa o essencial para funcionar e, só se você permitir, os cookies do Google Analytics para contar as visitas ao site.</p>
 
-      <h2>O que guardamos no seu navegador</h2>
-      <div className="legal-tabela" role="table" aria-label="Itens guardados no navegador">
+      <h2>Essenciais: sempre ligados</h2>
+      <div className="legal-tabela" role="table" aria-label="Itens essenciais guardados no navegador">
         <div role="row" className="legal-tabela-cabeca"><span role="columnheader">Item</span><span role="columnheader">Para quê</span><span role="columnheader">Por quanto tempo</span></div>
         <div role="row"><span role="cell">Sessão de login (sb-…-auth-token)</span><span role="cell">Manter você conectado ao painel</span><span role="cell">Até você clicar em Sair</span></div>
-        <div role="row"><span role="cell">Aviso de cookies (rtq-aviso-cookies)</span><span role="cell">Não mostrar este aviso de novo</span><span role="cell">Até você limpar os dados do site</span></div>
+        <div role="row"><span role="cell">Escolha de cookies (rtq-aviso-cookies)</span><span role="cell">Lembrar se você aceitou ou recusou a contagem de visitas</span><span role="cell">Até você limpar os dados do site</span></div>
+        <div role="row"><span role="cell">Banner do aplicativo (rtq-instalar-app)</span><span role="cell">Lembrar que você instalou o app ou pediu "Agora não"</span><span role="cell">Até você limpar os dados do site</span></div>
+        <div role="row"><span role="cell">Cópia do aplicativo (service worker)</span><span role="cell">Guardar os arquivos do site, sem dados seus, para abrir mais rápido e instalar no celular</span><span role="cell">Até a próxima versão do site</span></div>
       </div>
-      <p>Todos são essenciais: sem eles o login não funciona. Por isso não dependem de consentimento (LGPD, art. 7º, V e IX), mas você deve saber que existem.</p>
+      <p>Sem eles o login não funciona. Por isso não dependem de consentimento (LGPD, art. 7º, V e IX), mas você deve saber que existem.</p>
+
+      <h2>Contagem de visitas: só se você aceitar</h2>
+      <div className="legal-tabela" role="table" aria-label="Cookies opcionais">
+        <div role="row" className="legal-tabela-cabeca"><span role="columnheader">Item</span><span role="columnheader">Para quê</span><span role="columnheader">Por quanto tempo</span></div>
+        <div role="row"><span role="cell">Google Analytics (_ga e _ga_…)</span><span role="cell">Contar as visitas às páginas públicas e de onde elas vêm, com um identificador aleatório</span><span role="cell">13 meses, ou até você recusar</span></div>
+      </div>
+      <ul>
+        <li>O script do Google Analytics só é baixado depois que você clica em "Aceitar" no aviso de cookies.</li>
+        <li>Só as páginas públicas são medidas: a página inicial, Entrar, Criar conta e estas páginas legais. O painel nunca é medido.</li>
+        <li>Não enviamos ao Google o seu nome, e-mail ou CRQ, e a medição não é usada para publicidade.</li>
+      </ul>
 
       <h2>O que não usamos</h2>
       <ul>
         <li>Cookies de publicidade ou de remarketing.</li>
-        <li>Ferramentas de análise de audiência (como Google Analytics) ou mapas de calor.</li>
+        <li>Mapas de calor ou gravação da tela.</li>
         <li>Botões ou rastreadores de redes sociais.</li>
-        <li>Fontes ou scripts carregados de terceiros ao abrir o site: as fontes são servidas pelo próprio {EMPRESA.produto}.</li>
+        <li>Fontes carregadas de terceiros: as fontes são servidas pelo próprio {EMPRESA.produto}.</li>
       </ul>
-      <p>Se algum dia passarmos a usar algo opcional, ele só será ativado depois do seu consentimento, e esta página será atualizada.</p>
 
       <h2>Sites de terceiros</h2>
       <p>Ao entrar com o Google, conectar a Google Agenda ou pagar a assinatura, você vai para os sites do Google ou da Kiwify, que têm suas próprias políticas de cookies.</p>
 
-      <h2>Como apagar</h2>
-      <p>Nas configurações do navegador, apague os dados do site rtquimico.web.app. Você será desconectado e o aviso de cookies aparecerá de novo.</p>
-      <p><button type="button" className="button secondary" onClick={abrirAvisoCookies}>Ver o aviso de cookies</button></p>
+      <h2>Como mudar a escolha ou apagar</h2>
+      <p>Clique em "Mudar minha escolha" abaixo ou em "Preferências de cookies", no rodapé do site. Se você recusar depois de ter aceitado, a contagem para e os cookies do Google Analytics são apagados.</p>
+      <p>Você também pode apagar tudo nas configurações do navegador, nos dados do site rtquimico.web.app. Você será desconectado e o aviso de cookies aparecerá de novo.</p>
+      <p><button type="button" className="button secondary" onClick={abrirAvisoCookies}>Mudar minha escolha</button></p>
     </>
   );
 }

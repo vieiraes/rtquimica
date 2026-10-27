@@ -14,9 +14,12 @@ import { Header, PageHeading, Sidebar, VoltarAoTopo } from "./components/layout"
 import { Landing } from "./components/landing";
 import { AceiteTermos, PaginaLegal } from "./components/legal";
 import { AvisoCookies } from "./components/aviso-cookies";
+import { InstalarApp } from "./components/instalar-app";
 import { RodapeLegal } from "./components/site-footer";
 import { PrivacidadeDados } from "./components/privacidade-dados";
 import { VERSAO_TERMOS } from "./lib/legal";
+import { aplicarCabecalho } from "./lib/seo";
+import { registrarVisita } from "./lib/analytics";
 import { AuthPage, DefinirSenha } from "./components/auth-page";
 import { traduzirErroAuth } from "./lib/auth-erros";
 import { Alerts, Compliance, Dashboard, Profile, Responsibilities, TechnicalDiary, type PerfilEditavel } from "./components/pages";
@@ -55,6 +58,12 @@ function App() {
   const caminho = useCaminho();
   const [dataLoading, setDataLoading] = useState(false);
   const { pagina: page, ir, substituir } = usePagina();
+  // Título e descrição de cada página e a visita no Analytics (só página pública e com consentimento: src/lib/analytics.ts).
+  // Lê a URL da janela: o painel troca de página sem avisar o useCaminho.
+  useEffect(() => {
+    aplicarCabecalho(window.location.pathname);
+    registrarVisita(window.location.pathname);
+  }, [caminho, page]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [rts, setRts] = useState<RT[]>(isSupabaseConfigured ? [] : initialRts);
   const [alerts, setAlerts] = useState<Alert[]>(isSupabaseConfigured ? [] : initialAlerts);
@@ -505,12 +514,16 @@ function App() {
     setAlerts((current) => current.map((alert) => ids && !ids.includes(alert.id) ? alert : { ...alert, read: true }));
   };
 
+  // Páginas legais: abertas com ou sem login
+  const legal = tipoLegal(caminho);
+
   if (booting) {
+    // Landing e páginas legais não esperam a sessão: o HTML pré-renderizado segue na tela, sem piscar o "Conectando..."
+    if (legal) return <PaginaLegal tipo={legal} logado={false} />;
+    if (caminho === "/") return <Landing />;
     return <div className="boot-screen"><Brand /><span>Conectando...</span></div>;
   }
 
-  // Páginas legais: abertas com ou sem login
-  const legal = tipoLegal(caminho);
   if (legal) {
     return <><PaginaLegal tipo={legal} logado={loggedIn} /><AvisoCookies /></>;
   }
@@ -604,6 +617,7 @@ function App() {
           {quimico && isSupabaseConfigured && profile && !profile.crq_number && page !== "perfil" && (
             <button className="faixa-assinatura faixa-crq" onClick={() => goTo("perfil")}>Falta o seu número do CRQ: ele vai na comunicação ao CRQ, no diário e nos relatórios. Informar agora</button>
           )}
+          <InstalarApp />
           <PageHeading page={page} name={displayName} papel={papel} onNavigate={goTo} onPrimary={() => setModal(page === "acoes" ? "action" : "rt")} />
           {page === "dashboard" && <Dashboard rts={rts} alerts={alerts} actions={actions} />}
           {page === "rts" && <Responsibilities rts={rts} onNew={() => setModal("rt")} acoes={{ onComunicar: (rt, tipo) => setComunicacao({ rt, tipo: tipo ?? (rt.status === "Cancelada" ? "encerramento" : "inicio") }), onEncerrar: (rt, abrir) => void encerrarRt(rt, abrir), onDesfazerCrq: (rt, tipo) => void desfazerComunicacao(rt, tipo), onAviso: showToast }} />}

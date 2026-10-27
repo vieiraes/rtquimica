@@ -1,0 +1,5 @@
+# O painel não tem link público e responde com noindex (app.html); só o site público entra no Google.
+User-agent: *
+Allow: /
+
+Sitemap: https://rtquimico.web.app/sitemap.xml
