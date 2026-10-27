@@ -37,6 +37,6 @@ Abra https://analytics.google.com → propriedade **RTQuímico** → **Administr
 ### 3. Search Console (para aparecer no Google)
 
 1. Abra https://search.google.com/search-console com a conta **vieira.es@gmail.com** → **Adicionar propriedade** → **Prefixo do URL** → `https://rtquimico.web.app`.
-2. Em "Outros métodos de verificação", escolha **Tag HTML** e me passe o valor de `content` da tag `google-site-verification`. Eu coloco no `index.html` e publico; depois você clica em **Verificar**.
+2. Verificação por **Tag HTML**: a tag `google-site-verification` está no `index.html` (todas as páginas) desde 26/10/2026. Não remover. O arquivo `.html` do Google não serve aqui: o `cleanUrls` redireciona `.html` para o endereço sem extensão.
 3. Já verificado: menu **Sitemaps** → digite `sitemap.xml` → **Enviar**.
 4. Opcional: em **Inspeção de URL**, cole `https://rtquimico.web.app/` → **Solicitar indexação**.
