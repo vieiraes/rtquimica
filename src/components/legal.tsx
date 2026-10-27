@@ -85,13 +85,14 @@ function Privacidade() {
         <li><b>Google</b>: login com o Google e Google Agenda, apenas se você usar esses recursos.</li>
         <li><b>Google Analytics</b>: contagem de visitas às páginas públicas, apenas se você aceitar no aviso de cookies. Sem publicidade, sem Google Signals e sem compartilhar com outros produtos do Google para anúncios.</li>
         <li><b>DeepSeek</b>: só quando você clica em "Redigir com IA", "Explicar com IA" ou "Gerar rascunho com IA". Vão o texto da sua anotação ou do modelo e o nome, o CNAE e a cidade da empresa; seu nome, e-mail e CPF não vão. Servidores fora do Brasil.</li>
+        <li><b>Brevo</b>: envio dos e-mails do login (convite da equipe e "esqueci a senha"). Vão o seu e-mail e o link do e-mail. Servidores na União Europeia.</li>
         <li><b>Kiwify</b>: pagamento da assinatura. A compra é feita no site da Kiwify, sob a política dela.</li>
         <li><b>BrasilAPI e CNPJ.ws</b>: o CNPJ que você digita, para preencher os dados públicos da empresa na Receita Federal.</li>
         <li><b>Autoridades públicas</b>, quando houver obrigação legal ou ordem judicial.</li>
       </ul>
 
       <h2>5. Transferência internacional</h2>
-      <p>Supabase, Google e DeepSeek processam dados fora do Brasil. A transferência ocorre para executar o contrato com você (art. 33, IX, da LGPD) ou, no caso do Google Analytics, com o seu consentimento (art. 33, VIII), e com fornecedores que adotam medidas de segurança, como conexão cifrada e controle de acesso.</p>
+      <p>Supabase, Google, DeepSeek e Brevo processam dados fora do Brasil. A transferência ocorre para executar o contrato com você (art. 33, IX, da LGPD) ou, no caso do Google Analytics, com o seu consentimento (art. 33, VIII), e com fornecedores que adotam medidas de segurança, como conexão cifrada e controle de acesso.</p>
 
       <h2>6. Por quanto tempo guardamos</h2>
       <ul>
